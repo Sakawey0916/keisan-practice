@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>計算テスト練習アプリ（GitHub公開用）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <style>
+      :root {
+        --bg: #f4f1e8;
+        --bg-soft: #ece7d9;
+        --surface: #fffdf7;
+        --card: #ffffff;
+        --ink: #26303e;
+        --ink-2: #5d6875;
+        --ink-3: #8b94a0;
+        --line: #e2dbc9;
+        --line-strong: #cfc6ae;
+        --accent: #cf3524;
+        --accent-deep: #a92a1c;
+        --accent-soft: #fbeae6;
+        --slate: #40618f;
+        --slate-soft: #e7edf5;
+        --teal: #1e7a6c;
+        --teal-soft: #e2f1ec;
+        --gold: #b07d1e;
+        --shadow: 0 1px 2px rgba(60, 48, 20, .06), 0 8px 24px -12px rgba(60, 48, 20, .18);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14171d;
+          --bg-soft: #1a1e26;
+          --surface: #1d212b;
+          --card: #212633;
+          --ink: #ece8dc;
+          --ink-2: #a9b1bf;
+          --ink-3: #7d8694;
+          --line: #313947;
+          --line-strong: #454f61;
+          --accent: #ff6a55;
+          --accent-deep: #ff8a76;
+          --accent-soft: #3d2320;
+          --slate: #8fb0dd;
+          --slate-soft: #26334a;
+          --teal: #4cc2ae;
+          --teal-soft: #1d3330;
+          --gold: #d9a94e;
+          --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.6);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.75;
+        font-size: 16px;
+      }
+      button { font-family: inherit; cursor: pointer; }
+      .wrap { max-width: 920px; margin: 0 auto; padding: 20px 16px 56px; }
+
+      /* ---------- home header ---------- */
+      .home-head { margin: 6px 0 18px; }
+      .home-head h1 { font-size: 1.55rem; font-weight: 800; margin: 0 0 2px; letter-spacing: .02em; }
+      .home-head p { margin: 0; color: var(--ink-2); font-size: .92rem; }
+      .summary {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 20px;
+      }
+      .stat {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 12px 14px; box-shadow: var(--shadow);
+      }
+      .stat .num { font-size: 1.5rem; font-weight: 800; line-height: 1.25; }
+      .stat .num small { font-size: .85rem; color: var(--ink-2); font-weight: 500; }
+      .stat .lbl { font-size: .78rem; color: var(--ink-2); margin-top: 2px; }
+      .stat.weak .num { color: var(--accent); }
+      .overall-bar { height: 8px; background: var(--bg-soft); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+      .overall-bar i { display: block; height: 100%; background: var(--teal); border-radius: 99px; transition: width .4s ease; }
+
+      /* ---------- mode cards ---------- */
+      .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+      .mode-btn {
+        text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+        border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); min-height: 44px;
+        transition: transform .12s ease, border-color .12s ease;
+      }
+      .mode-btn:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+      .mode-btn:active { transform: translateY(0); }
+      .mode-btn .m-title { font-size: 1.08rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+      .mode-btn .m-desc { font-size: .85rem; color: var(--ink-2); margin-top: 4px; line-height: 1.6; }
+      .mode-btn .m-badge {
+        margin-left: auto; background: var(--accent); color: #fff; font-size: .78rem; font-weight: 700;
+        border-radius: 99px; padding: 1px 10px; line-height: 1.7;
+      }
+      .mode-btn.drill .m-title::before { content: "🎲"; }
+      .mode-btn.weak .m-title::before { content: "✕"; color: var(--accent); font-weight: 800; }
+      .mode-btn:disabled { opacity: .55; cursor: default; transform: none; }
+
+      /* ---------- week grid ---------- */
+      .section-title { font-size: 1.05rem; font-weight: 800; margin: 0 0 12px; display: flex; align-items: baseline; gap: 10px; }
+      .section-title span { font-size: .8rem; color: var(--ink-3); font-weight: 500; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+      .week-card {
+        text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 14px 16px 13px; color: var(--ink); box-shadow: var(--shadow); min-height: 44px;
+        transition: transform .12s ease, border-color .12s ease; width: 100%;
+      }
+      .week-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+      .week-card .wk-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+      .week-card .wk-num { font-size: 1.3rem; font-weight: 800; }
+      .week-card .wk-num small { font-size: .8rem; font-weight: 700; color: var(--ink-2); margin-right: 2px; }
+      .score-chip {
+        font-size: .8rem; font-weight: 800; border-radius: 99px; padding: 1px 10px; line-height: 1.8;
+        background: var(--teal-soft); color: var(--teal); white-space: nowrap;
+      }
+      .score-chip.perfect { background: var(--accent); color: #fff; }
+      .score-chip.none { background: var(--bg-soft); color: var(--ink-3); font-weight: 500; }
+      .week-card .wk-topic { font-size: .92rem; font-weight: 700; margin-top: 2px; }
+      .week-card .wk-title { font-size: .74rem; color: var(--ink-3); line-height: 1.5; margin-top: 1px;
+        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+      .wk-bar { height: 6px; background: var(--bg-soft); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+      .wk-bar i { display: block; height: 100%; background: var(--teal); border-radius: 99px; }
+      .wk-meta { display: flex; justify-content: space-between; font-size: .76rem; color: var(--ink-2); margin-top: 6px; }
+      .wk-meta .wk-weak { color: var(--accent); font-weight: 700; }
+
+      .reset-zone { margin-top: 30px; text-align: center; }
+      .reset-btn {
+        background: none; border: none; color: var(--ink-3); font-size: .82rem; text-decoration: underline;
+        text-underline-offset: 3px; padding: 10px 14px; min-height: 44px;
+      }
+      .reset-btn.confirm { color: var(--accent); font-weight: 700; text-decoration: none;
+        border: 1px solid var(--accent); border-radius: 99px; padding: 8px 18px; }
+
+      /* ---------- quiz ---------- */
+      .quiz-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .quit-btn {
+        background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); border-radius: 99px;
+        padding: 6px 16px; font-size: .85rem; font-weight: 700; min-height: 40px; flex: none;
+      }
+      .quiz-progress { flex: 1; }
+      .quiz-progress .qp-label { display: flex; justify-content: space-between; font-size: .8rem; color: var(--ink-2); margin-bottom: 5px; }
+      .quiz-progress .qp-label b { color: var(--ink); }
+      .qp-bar { height: 8px; background: var(--bg-soft); border-radius: 99px; overflow: hidden; }
+      .qp-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s ease; }
+      .q-card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
+        padding: 22px 22px 20px;
+      }
+      .q-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+      .q-tag { font-size: .78rem; font-weight: 700; background: var(--bg-soft); color: var(--ink-2);
+        border-radius: 99px; padding: 2px 11px; line-height: 1.8; }
+      .q-tag.points { background: var(--accent-soft); color: var(--accent); }
+      .q-body { font-size: 1.06rem; line-height: 2; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
+      .q-body .katex { font-size: 1.05em; }
+      .katex-display { margin: .4em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+      .sublist { margin-top: .35em; display: grid; gap: .3em; }
+      .subitem { display: flex; gap: .6em; align-items: flex-start; }
+      .sublabel { font-weight: 800; color: var(--accent); flex: none; min-width: 2.2em; }
+      .subbody { flex: 1; min-width: 0; }
+      .fbox {
+        display: inline-block; border: 1.6px solid var(--ink-2); border-radius: 4px; padding: 0 .38em;
+        min-width: 1.7em; text-align: center; line-height: 1.45; font-weight: 700; background: var(--surface);
+        vertical-align: baseline; margin: 0 .08em;
+      }
+      .texraw { font-family: ui-monospace, monospace; font-size: .88em; background: var(--bg-soft);
+        border-radius: 6px; padding: 0 .3em; word-break: break-all; }
+
+      .answer-zone { margin-top: 20px; }
+      .reveal-btn {
+        width: 100%; min-height: 54px; border-radius: 12px; border: 2px dashed var(--line-strong);
+        background: var(--bg); color: var(--ink-2); font-size: 1rem; font-weight: 700;
+        transition: border-color .12s ease, color .12s ease;
+      }
+      .reveal-btn:hover { border-color: var(--accent); color: var(--accent); }
+      .answer-box {
+        border: 1px solid var(--teal); background: var(--teal-soft); border-radius: 12px; padding: 14px 18px 12px;
+      }
+      .answer-box .a-label { font-size: .78rem; font-weight: 800; color: var(--teal); letter-spacing: .06em; margin-bottom: 4px; }
+      .answer-box .a-body { font-size: 1.05rem; line-height: 2; overflow-x: auto; overflow-y: hidden; }
+      .mark-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+      .mark-btn {
+        min-height: 60px; border-radius: 12px; font-size: 1.35rem; font-weight: 800; border: 2px solid;
+        display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--card);
+        transition: transform .1s ease, background .1s ease;
+      }
+      .mark-btn small { font-size: .82rem; font-weight: 700; }
+      .mark-btn.ok { color: var(--accent); border-color: var(--accent); }
+      .mark-btn.ok:hover, .mark-btn.ok:active { background: var(--accent); color: #fff; }
+      .mark-btn.ng { color: var(--slate); border-color: var(--slate); }
+      .mark-btn.ng:hover, .mark-btn.ng:active { background: var(--slate); color: #fff; }
+      .mark-btn:active { transform: scale(.98); }
+      .marked-note { text-align: center; font-size: .9rem; color: var(--ink-2); margin-top: 14px; min-height: 1.4em; }
+      .marked-note b.ok { color: var(--accent); }
+      .marked-note b.ng { color: var(--slate); }
+
+      /* ---------- result ---------- */
+      .result-card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
+        padding: 28px 22px; text-align: center;
+      }
+      .result-card .r-label { font-size: .9rem; color: var(--ink-2); font-weight: 700; }
+      .result-score { font-size: 3.4rem; font-weight: 800; line-height: 1.2; margin: 6px 0 2px; }
+      .result-score small { font-size: 1.1rem; color: var(--ink-2); font-weight: 500; }
+      .result-score .perfect { color: var(--accent); }
+      .result-sub { color: var(--ink-2); font-size: .92rem; }
+      .review { margin-top: 22px; display: grid; gap: 10px; text-align: left; }
+      .review-item {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px;
+        display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: .95rem;
+      }
+      .review-mark { font-size: 1.25rem; font-weight: 800; line-height: 1.5; }
+      .review-mark.ok { color: var(--accent); }
+      .review-mark.ng { color: var(--slate); }
+      .review-q { line-height: 1.9; overflow-x: auto; overflow-y: hidden; }
+      .review-a { grid-column: 2; color: var(--ink-2); font-size: .88rem; line-height: 1.9; overflow-x: auto; overflow-y: hidden; }
+      .review-a::before { content: "答え："; font-weight: 700; color: var(--teal); }
+      .result-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+      .btn {
+        min-height: 50px; border-radius: 99px; padding: 10px 26px; font-size: .98rem; font-weight: 800;
+        border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+      }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .btn.primary:hover { background: var(--accent-deep); }
+
+      .empty-note {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 26px 20px; text-align: center; color: var(--ink-2); box-shadow: var(--shadow);
+      }
+      .empty-note .big { font-size: 1.6rem; margin-bottom: 6px; }
+      .hidden { display: none !important; }
+      .foot-note { margin-top: 34px; text-align: center; font-size: .76rem; color: var(--ink-3); }
+
+      @media (max-width: 560px) {
+        .wrap { padding: 14px 12px 48px; }
+        .modes { grid-template-columns: 1fr; }
+        .grid { grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+        .summary { gap: 8px; }
+        .stat { padding: 10px 11px; }
+        .stat .num { font-size: 1.25rem; }
+        .q-card { padding: 18px 15px 16px; }
+        .q-body { font-size: 1rem; }
+        .result-score { font-size: 2.7rem; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+
+      <!-- ======== ホーム ======== -->
+      <section id="view-home">
+        <div class="home-head">
+          <h1>計算テスト練習</h1>
+          <p>中3数学・全42週 143問（各週100点満点）／ 答えを見て、自分で ○× を付ける練習アプリ</p>
+        </div>
+
+        <div class="summary">
+          <div class="stat">
+            <div class="num"><span id="st-done">0</span><small> / 143問</small></div>
+            <div class="lbl">解いた問題</div>
+            <div class="overall-bar"><i id="st-bar" style="width:0%"></i></div>
+          </div>
+          <div class="stat">
+            <div class="num"><span id="st-rate">―</span></div>
+            <div class="lbl">正解率（自己採点）</div>
+          </div>
+          <div class="stat weak">
+            <div class="num"><span id="st-weak">0</span><small> 問</small></div>
+            <div class="lbl">苦手（×）の問題</div>
+          </div>
+        </div>
+
+        <div class="modes">
+          <button class="mode-btn drill" id="btn-drill" type="button">
+            <span class="m-title">ランダムドリル</span>
+            <div class="m-desc">全143問からランダムに10問。腕試しやテスト前の総仕上げに。</div>
+          </button>
+          <button class="mode-btn weak" id="btn-weak" type="button">
+            <span class="m-title">苦手だけ復習 <span class="m-badge hidden" id="weak-badge"></span></span>
+            <div class="m-desc">× を付けた問題だけを集めて出題します。</div>
+          </button>
+        </div>
+
+        <h2 class="section-title">週ごとテスト <span>週を選んでスタート（各週100点満点）</span></h2>
+        <div class="grid" id="week-grid"></div>
+
+        <div class="reset-zone">
+          <button class="reset-btn" id="btn-reset" type="button">記録をすべてリセット</button>
+        </div>
+        <p class="foot-note">進捗はこのブラウザ内に保存されます（端末・ブラウザごとに記録されます）。</p>
+      </section>
+
+      <!-- ======== クイズ ======== -->
+      <section id="view-quiz" class="hidden">
+        <div class="quiz-top">
+          <button class="quit-btn" id="btn-quit" type="button">← やめる</button>
+          <div class="quiz-progress">
+            <div class="qp-label"><span id="qp-title"></span><span><b id="qp-now">1</b> / <span id="qp-total">5</span> 問</span></div>
+            <div class="qp-bar"><i id="qp-bar" style="width:0%"></i></div>
+          </div>
+        </div>
+        <div class="q-card">
+          <div class="q-meta">
+            <span class="q-tag" id="q-where"></span>
+            <span class="q-tag points" id="q-points"></span>
+            <span class="q-tag hidden" id="q-prev"></span>
+          </div>
+          <div class="q-body" id="q-body"></div>
+          <div class="answer-zone">
+            <button class="reveal-btn" id="btn-reveal" type="button">答えを見る</button>
+            <div id="answer-area" class="hidden">
+              <div class="answer-box">
+                <div class="a-label">答え</div>
+                <div class="a-body" id="a-body"></div>
+              </div>
+              <div class="mark-row">
+                <button class="mark-btn ok" id="btn-ok" type="button">○ <small>正解</small></button>
+                <button class="mark-btn ng" id="btn-ng" type="button">× <small>不正解</small></button>
+              </div>
+            </div>
+            <div class="marked-note" id="marked-note"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 結果 ======== -->
+      <section id="view-result" class="hidden">
+        <div class="result-card">
+          <div class="r-label" id="r-label"></div>
+          <div class="result-score" id="r-score"></div>
+          <div class="result-sub" id="r-sub"></div>
+          <div class="review" id="r-review"></div>
+          <div class="result-actions">
+            <button class="btn" id="btn-again" type="button">もう一度</button>
+            <button class="btn primary" id="btn-home" type="button">週一覧へ戻る</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 空状態 ======== -->
+      <section id="view-empty" class="hidden">
+        <div class="empty-note">
+          <div class="big">🎉</div>
+          <p id="empty-text">まだ × の問題がありません。<br />週ごとテストやランダムドリルで × が付いた問題が、ここに集まります。</p>
+          <div class="result-actions">
+            <button class="btn primary" id="btn-empty-home" type="button">週一覧へ戻る</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <script>
+      "use strict";
+      var DATA = {"weeks":[{"week":1,"title":"中３計算テスト 01（前期第01回実施）","topic":"［数と式］","questions":[{"q":"次の式を展開し，結果を簡単にせよ。 $(1-x)(1+x+x^2)(1+x^3+x^6)$","points":20,"a":"$1-x^9$"},{"q":"次の式を計算せよ。 $\\frac{x^2+3x+2}{x^2-4x+4}\\times\\frac{x^2-x-2}{x^2-4}\\times\\frac{x-2}{x+1}$","points":20,"a":"$\\frac{x+1}{x-2}$"},{"q":"次の式を簡単にせよ。 $\\frac{2\\sqrt{3}}{\\sqrt{6-\\sqrt{27}}}-\\frac{4\\sqrt{3}}{\\sqrt{8+\\sqrt{48}}}$","points":20,"a":"$2\\sqrt{6}-2\\sqrt{2}$"},{"q":"$x^4-4x+4$ を $x^2-3x+2$ で割ったときの商，余りを求めよ。","points":20,"a":"商：$x^2+3x+7$，余り：$11x-10$"},{"q":"$x>0$，$x^2+\\frac{1}{x^2}=5$ のとき，次の各式の値を求めよ。 \\begin{enumerate} \\item[(i)] $x+\\frac{1}{x}$ \\item[(ii)] $x^3+\\frac{1}{x^3}$","points":20,"a":"\\begin{enumerate} \\item[(i)] $\\sqrt{7}$ \\item[(ii)] $4\\sqrt{7}$"}]},{"week":2,"title":"中３計算テスト 2（前期第2回）","topic":"数学基礎講座 I［二次方程式・高次方程式］","questions":[{"q":"$x$ は実数であるものとする。このとき， \\[ y=\\frac{x+i}{1+i}+\\frac{3-i}{1-i} \\] を満たす $y$ が実数になるように，$x$ の値を定めよ。","points":20,"a":"$\\mathbf{x=3}$"},{"q":"$x$ の二次式 $x^2-2ax+4$ が完全平方式になるように，実数定数 $a$ の値を定めよ。","points":20,"a":"$\\mathbf{a=2,\\ -2}$"},{"q":"$f(x)=x^4-2x^3+ax^2-a^2x-14$ を $x-3$ で割ったときの余りが $1$ となるように定数 $a$ の値を定めよ。","points":20,"a":"$\\mathbf{a=-1,\\ 4}$"},{"q":"$2x-3\\geqq 0$ ……①，$x^2-2x<3$ ……② を同時に満たす $x$ の範囲を求めよ。","points":20,"a":"$\\mathbf{\\frac{3}{2}\\leqq x<3}$"},{"q":"不等式 $|x-1|>2x$ を解け。","points":20,"a":"$\\mathbf{x<\\frac{1}{3}}$"}]},{"week":3,"title":"中３計算テスト 3 （前期第3週）","topic":"数学基礎講座 I ［関数］","questions":[{"q":"放物線 $y=x^2+x$ を $x$ 軸方向に $2$，$y$ 軸方向に $-3$ だけ平行移動させた放物線の方程式を求めよ。","points":20,"a":"$\\mathbf{y=x^2-3x-1}$"},{"q":"実数 $x$，$y$ が $2x+y=1$ を満たしながら変化するとき，$z=x^2+y^2$ の最小値を求めよ。また，そのときの $x$，$y$ も答えよ。","points":20,"a":"最小値：$\\mathbf{\\frac{1}{5}}$ $\\left(\\mathbf{x=\\frac{2}{5}},\\ \\mathbf{y=\\frac{1}{5}}\\ \\text{のとき}\\right)$"},{"q":"$x$ が任意の実数値をとって変化するとき，二次関数 $y=x^2+2ax+a$ の最小値が $-6$ となるように，実数定数 $a$ の値を定めよ。","points":20,"a":"$\\mathbf{a=-2,\\ 3}$"},{"q":"放物線 $y=-x^2+1$ と直線 $y=4x+5$ の共有点の座標を求めよ。","points":20,"a":"$\\mathbf{(-2,\\ -3)}$"},{"q":"分数関数 $y=\\frac{2x+3}{x+2}$ のグラフの漸近線の方程式を求めよ。","points":20,"a":"$\\mathbf{x=-2,\\ y=2}$"}]},{"week":4,"title":"中３計算テスト 4 （前期第4回）","topic":"数学基礎講座 I ［数と式］","questions":[{"q":"$x^4-7x^2-18$ を実数範囲で因数分解せよ。","points":20,"a":"$\\mathbf{(x^2+2)(x-3)(x+3)}$"},{"q":"$x+y+z=1$，$xy+yz+zx=2$，$xyz=3$ のとき，$x^2y^2+y^2z^2+z^2x^2$ の値を求めよ。","points":20,"a":"$\\mathbf{-2}$"},{"q":"$\\frac{1}{1-\\frac{1}{1+\\frac{1}{a}}}$ を簡単にせよ。","points":20,"a":"$\\mathbf{a+1}$"},{"q":"$(\\sqrt{2}+\\sqrt{3})x+(\\sqrt{2}-\\sqrt{3})y=2\\sqrt{3}$ を満たす有理数 $x$，$y$ を求めよ。","points":20,"a":"$\\mathbf{(x,\\ y)=(1,\\ -1)}$"},{"q":"$\\frac{1}{1+\\sqrt{2}+\\sqrt{3}}$ の分母を有理化せよ。","points":20,"a":"$\\mathbf{\\frac{\\sqrt{2}+2-\\sqrt{6}}{4}}$"}]},{"week":5,"title":"中３計算テスト 5 （前期第5回）","topic":"数学基礎講座 I ［方程式・不等式］","questions":[{"q":"二次方程式 $(2+i)x^2+(7+2i)x+3(1-i)=0$ の実数解を求めよ。","points":20,"a":"$\\mathbf{-3}$"},{"q":"連立方程式 $\\begin{cases} x+y=3 \\\\ xy=2 \\end{cases}$ を解け。","points":20,"a":"$\\mathbf{(x,\\ y)=(1,\\ 2),\\ (2,\\ 1)}$"},{"q":"連立方程式 $\\begin{cases} 3x^2-5xy-2y^2=0 \\\\ x^2+2xy+y^2=12 \\end{cases}$ を解け。","points":20,"a":"$\\mathbf{(x,\\ y)=\\left(\\pm\\sqrt{3},\\ \\mp 3\\sqrt{3}\\right),\\ } \\mathbf{\\left(\\pm\\frac{4\\sqrt{3}}{3},\\ \\pm\\frac{2\\sqrt{3}}{3}\\right)}$ （複号同順）"},{"q":"連立不等式 $\\begin{cases} x^2-x-6\\leqq 0 \\\\ 6x^2+7x-3>0 \\end{cases}$ を解け。","points":20,"a":"$\\mathbf{-2\\leqq x<-\\frac{3}{2},\\ \\frac{1}{3}<x\\leqq 3}$"},{"q":"$x$ の整式 $f(x)$ を，$x+2$，$x-3$ で割ったときの余りがそれぞれ $2$，$7$ である。このとき，$f(x)$ を $(x+2)(x-3)$ で割ったときの余りを求めよ。","points":20,"a":"$\\mathbf{x+4}$"}]},{"week":7,"title":"中３計算テスト 7 （前期第7回）","topic":"数学基礎講座 II ［三角関数 I ］","questions":[{"q":"$\\theta$ が第四象限の角で，$\\cos\\theta=\\frac{2}{3}$ であるとき，$\\sin\\theta$，$\\tan\\theta$ の値を求めたい。以下の $\\fbox{1}$ 〜 $\\fbox{4}$ にあてはまる数，式を求めよ。 $\\cos\\theta=\\frac{2}{3}$ より， \\[ \\sin^2\\theta=\\fbox{1}\\ \\text{（式で）}=\\fbox{2}\\ \\text{（数値で）} \\] $\\theta$ が第四象限の角であることより，$\\sin\\theta<0$ であるから， \\[ \\begin{cases} \\sin\\theta=\\fbox{3}\\ \\text{（数値で）} \\\\ \\tan\\theta=\\fbox{4}\\ \\text{（数値で）} \\end{cases}\\cdots\\cdots\\text{（答）} \\]","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{1-\\cos^2\\theta}$，\\quad $\\fbox{2}$ $\\boldsymbol{\\frac{5}{9}}$，\\quad $\\fbox{3}$ $\\boldsymbol{-\\frac{\\sqrt{5}}{3}}$，\\quad $\\fbox{4}$ $\\boldsymbol{-\\frac{\\sqrt{5}}{2}}$"},{"q":"$\\sin\\theta+\\cos\\theta=\\sqrt{2}$ のとき，(i) $\\sin\\theta\\cos\\theta$，(ii) $\\sin^3\\theta+\\cos^3\\theta$ の値を求めよ。","points":20,"a":"(i) $\\boldsymbol{\\sin\\theta\\cos\\theta=\\frac{1}{2}}$ \\qquad (ii) $\\boldsymbol{\\sin^3\\theta+\\cos^3\\theta=\\frac{\\sqrt{2}}{2}}$"},{"q":"$\\theta$ についての次の方程式を解き，一般解を答えよ。 (i) \\ $2\\cos\\theta+\\sqrt{3}=0$ \\qquad (ii) \\ $\\tan\\theta=\\sqrt{3}$","points":20,"a":"(i) $\\boldsymbol{\\theta=\\frac{5}{6}\\pi+2n\\pi}$，$\\boldsymbol{\\frac{7}{6}\\pi+2n\\pi}$（$\\boldsymbol{n}$ は整数） (ii) $\\boldsymbol{\\theta=\\frac{\\pi}{3}+n\\pi}$（$\\boldsymbol{n}$ は整数）"},{"q":"$\\triangle\\mathrm{ABC}$ において，$a=10$，$A=45^\\circ$，$B=60^\\circ$ のとき，$b$ を求めたい。以下の $\\fbox{1}$，$\\fbox{2}$ にあてはまる数，式を求めよ。 $\\triangle\\mathrm{ABC}$ において，正弦定理より， \\[ \\fbox{1}\\ \\text{（$a$，$b$，$A$，$B$ を用いた正弦定理の方程式）} \\] よって， \\[ b=\\fbox{2}\\ \\text{（数値）}\\quad \\cdots\\cdots\\text{（答）} \\]","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{\\frac{a}{\\sin A}=\\frac{b}{\\sin B}}$，\\quad $\\fbox{2}$ $\\boldsymbol{5\\sqrt{6}}$"},{"q":"$\\triangle\\mathrm{ABC}$ において，$b=2$，$c=3$，$A=60^\\circ$ のとき，$a$ を求めたい。以下の $\\fbox{1}$，$\\fbox{2}$ にあてはまる数，式を求めよ。 $\\triangle\\mathrm{ABC}$ において，余弦定理より， \\[ a^2=\\fbox{1}\\ \\text{（$b$，$c$，$A$ を用いた余弦定理の式）} \\] $a>0$ であるから， \\[ a=\\fbox{2}\\ \\text{（数値）}\\quad \\cdots\\cdots\\text{（答）} \\]","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{b^2+c^2-2bc\\cos A}$，\\quad $\\fbox{2}$ $\\boldsymbol{\\sqrt{7}}$"}]},{"week":8,"title":"中３計算テスト 8 （前期第8回）","topic":"数学基礎講座 II ［三角関数 I ］","questions":[{"q":"$\\frac{\\cos x}{1+\\sin x}+\\frac{1+\\sin x}{\\cos x}$ を簡単にせよ。","points":15,"a":"$\\boldsymbol{\\frac{2}{\\cos x}}$"},{"q":"$0\\leqq\\theta<2\\pi$ のとき，$\\cos 2\\theta=\\frac{1}{2}$ を満たす $\\theta$ を求めよ。以下の $\\fbox{1}$，$\\fbox{2}$ にあてはまる数，式を答えよ。 $0\\leqq\\theta<2\\pi$ より，$0\\leqq 2\\theta<4\\pi$ であるから， \\[ \\cos 2\\theta=\\frac{1}{2}\\ \\Leftrightarrow\\ 2\\theta=\\text{（}\\fbox{1}\\text{）}\\ \\Leftrightarrow\\ \\theta=\\text{（}\\fbox{2}\\text{）}\\quad\\cdots\\cdots\\text{（答）} \\]","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{\\frac{\\pi}{3}}$，$\\boldsymbol{\\frac{5}{3}\\pi}$，$\\boldsymbol{\\frac{7}{3}\\pi}$，$\\boldsymbol{\\frac{11}{3}\\pi}$ \\qquad $\\fbox{2}$ $\\boldsymbol{\\frac{\\pi}{6}}$，$\\boldsymbol{\\frac{5}{6}\\pi}$，$\\boldsymbol{\\frac{7}{6}\\pi}$，$\\boldsymbol{\\frac{11}{6}\\pi}$"},{"q":"$\\sin A\\cos B=\\sin B\\cos A$ が成立する $\\triangle\\mathrm{ABC}$ は，どのような三角形か。以下の $\\fbox{1}$ 〜 $\\fbox{5}$ にあてはまる数式や文を答えよ。 $\\triangle\\mathrm{ABC}$ の外接円の半径を $R$ とする。このとき，正弦定理より， \\[ \\text{（}\\fbox{1}\\text{）}\\ \\text{（$a$，$b$，$A$，$B$，$R$ を用いた比例式で）}\\quad \\cdots\\cdots\\text{①} \\] また，余弦定理より， \\[ \\cos A=\\text{（}\\fbox{2}\\text{）}\\quad \\cdots\\cdots\\text{②}，\\qquad \\cos B=\\text{（}\\fbox{3}\\text{）}\\quad \\cdots\\cdots\\text{③} \\] ①②③より， \\[ \\sin A\\cos B=\\sin B\\cos A\\ \\Leftrightarrow\\ \\text{（}\\fbox{4}\\text{）}\\ \\text{（$\\Leftarrow$ 式変形したもの）} \\] よって，$\\triangle\\mathrm{ABC}$ は （$\\fbox{5}$） （$\\Leftarrow$ 式と言葉で） $\\cdots\\cdots$（答）","points":25,"a":"$\\fbox{1}$ $\\boldsymbol{\\frac{a}{\\sin A}=\\frac{b}{\\sin B}=2R}$ \\qquad $\\fbox{2}$ $\\boldsymbol{\\frac{b^2+c^2-a^2}{2bc}}$ $\\fbox{3}$ $\\boldsymbol{\\frac{c^2+a^2-b^2}{2ca}}$ \\qquad $\\fbox{4}$ $\\boldsymbol{a=b}$ （$a^2=b^2$ でも可） $\\fbox{5}$ $\\boldsymbol{\\mathrm{BC}=\\mathrm{CA}}$ \\textbf{の二等辺三角形}"},{"q":"鋭角三角形 $\\triangle\\mathrm{ABC}$ において，次の問に答えよ。 \\begin{enumerate} \\item[(i)] $a:b:c=4:3:2$ のとき，$\\sin A:\\sin B:\\sin C$ を求めよ。 \\item[(ii)] $b=3$，$c=4$，$A=60^\\circ$ のとき，$a$ を求めよ。","points":40,"a":"(i) $\\boldsymbol{4:3:2}$ \\qquad (ii) $\\boldsymbol{a=\\sqrt{13}}$"}]},{"week":9,"title":"中３計算テスト 9 （前期第9回）","topic":"数学基礎講座 I［関数］","questions":[{"q":"放物線 $y=x^2-3x+1$ が直線 $y=2x-a$ と共有点を持たないような実数定数 $a$ の値の範囲を求めよ。以下の解答の \\fbox{1}〜\\fbox{4} にあてはまる式を答えよ。 $y$ を消去して整理すると， （ \\fbox{1} ）（☞ 共有点の $x$ 座標を求める二次方程式） 共有点を持たないとき，\\fbox{1} 式が実数解を持たないので，\\fbox{1} の判別式を $D$ とすると， （ \\fbox{2} ）（☞ $D$ を用いた条件式） であるから， （ \\fbox{3} ）（☞ $a$ が満たすべき式で整理していない式） よって， （ \\fbox{4} ）$\\cdots\\cdots$答","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{x^2-5x+a+1=0}$ \\qquad $\\fbox{2}$ $\\boldsymbol{D<0}$ $\\fbox{3}$ $\\boldsymbol{25-4(a+1)<0}$ \\qquad $\\fbox{4}$ $\\boldsymbol{a>\\frac{21}{4}}$"},{"q":"$x$ が全ての実数値を取って変化するとき，$y=3-4x^2-2x^4$ の値域を求めよ。以下の解答の \\fbox{1}〜\\fbox{4} にあてはまる方程式，数値をそれぞれ答えよ。 $x^2=t$ とおくと，$x$ が全ての実数値を取るので， （ \\fbox{1} ）（☞ $t$ が取り得る値の範囲） このとき， $y=3-4x^2-2x^4 \\Leftrightarrow$ （ \\fbox{2} ）（☞ $t$ で置き換えた式） $\\Leftrightarrow$ （ \\fbox{3} ）（☞ 平方完成した式） \\fbox{1} を考慮して，\\fbox{3} の取り得る値の範囲を考えて，$y$ の値域は， （ \\fbox{4} ）$\\cdots\\cdots$答","points":20,"a":"$\\fbox{1}$ $\\boldsymbol{t\\geqq 0}$ \\qquad $\\fbox{2}$ $\\boldsymbol{y=3-4t-2t^2}$ $\\fbox{3}$ $\\boldsymbol{y=-2(t+1)^2+5}$ \\qquad $\\fbox{4}$ $\\boldsymbol{y\\leqq 3}$"},{"q":"無理関数 $y=\\sqrt{1-x^2}$ の定義域，値域をそれぞれ求めよ。","points":20,"a":"定義域：$\\boldsymbol{-1\\leqq x\\leqq 1}$，値域：$\\boldsymbol{0\\leqq y\\leqq 1}$"},{"q":"$x$ の二次方程式 $x^2+2ax+2-a=0$ の解が，次の各条件を満たすように，実数定数 $a$ の値の範囲を求めよ。(i) については，\\fbox{1}〜\\fbox{4} にあてはまる式を答えよ。 \\begin{enumerate} \\item[(i)] 異なる二解を持ち，共に $1$ より大きい。 $f(x)=x^2+2ax+2-a$ とおくと，異なる二解を持ち，共に $1$ より大きくなるのは， i) 二次方程式 $f(x)=0$ の判別式を $D$ として， （ \\fbox{1} ）（☞ $D$ が満たす式） ii) 二次関数 $y=f(x)$ の軸の条件より， （ \\fbox{2} ）（☞ $a$ の式で（整理していなくてもよい）） iii) 二次関数 $y=f(x)$ の端点の条件より， （ \\fbox{3} ）（☞ $f$ を用いた式） の条件を全て満たすときである。i)〜iii) より， （ \\fbox{4} ）$\\cdots\\cdots$答 \\item[(ii)] 一解が $1$ より大きく，もう一解が $1$ より小さい。","points":40,"a":"$\\fbox{1}$ $\\boldsymbol{D>0}$ \\qquad $\\fbox{2}$ $\\boldsymbol{-a>1}$ （$a<-1$ でも可） $\\fbox{3}$ $\\boldsymbol{f(1)>0}$ （$a+3>0$ でも可） \\qquad $\\fbox{4}$ $\\boldsymbol{-3<a<-2}$ \\qquad (ii)\\ $\\boldsymbol{a<-3}$"}]},{"week":10,"title":"中３計算テスト 10 （前期第10回）","topic":"数学基礎講座 I［指数・対数］","questions":[{"q":"$\\frac{\\sqrt{a\\cdot\\sqrt[3]{a}}}{\\sqrt[4]{a}}=a^x$ とおくとき，$x$ の値を求めよ。ただし，$a>0$，$a\\ne 1$ である。","points":20,"a":"$\\boldsymbol{x=\\frac{5}{12}}$"},{"q":"$\\sqrt{6}$，$\\sqrt[3]{15}$，$\\sqrt[4]{32}$ を小さい順に並べ替えよ。","points":20,"a":"$\\boldsymbol{\\sqrt[4]{32}<\\sqrt{6}<\\sqrt[3]{15}}$"},{"q":"次の方程式，不等式を解け。 \\begin{enumerate} \\item[(i)] $\\left(\\frac{1}{3}\\right)^{2x-1}<\\frac{1}{81}$ \\item[(ii)] $3^{2x}+3^x=12$ \\item[(iii)] $\\log_2(x+3)-\\log_2 x-3=0$","points":60,"a":"(i) $\\boldsymbol{x>\\frac{5}{2}}$ \\qquad (ii) $\\boldsymbol{x=1}$ \\qquad (iii) $\\boldsymbol{x=\\frac{3}{7}}$"}]},{"week":11,"title":"中３計算テスト 11 （前期第11回）","topic":"数学基礎講座 II［三角関数 II］","questions":[{"q":"関数 $y=2\\cos 3x$ の周期（基本周期）と値域を求めよ。","points":30,"a":"周期：$\\boldsymbol{\\frac{2}{3}\\pi}$，値域：$\\boldsymbol{-2\\leqq y\\leqq 2}$"},{"q":"$\\alpha$ は第一象限の角，$\\beta$ は第三象限の角で， \\[ \\sin\\alpha=\\frac{4}{5},\\quad \\cos\\beta=-\\frac{5}{13} \\] であるとき，次の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\sin(\\alpha-\\beta)$ \\item[(ii)] $\\cos(\\alpha+\\beta)$","points":40,"a":"(i) $\\boldsymbol{\\frac{16}{65}}$ \\qquad (ii) $\\boldsymbol{\\frac{33}{65}}$"},{"q":"$x$ が $0\\leqq x<2\\pi$ であるとき，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] $\\sin 3x-\\sin x$ を積の形に直せ。 \\item[(ii)] (i)を利用して，$\\sin 3x-\\sin x=0$ を解け。","points":30,"a":"(i) $\\boldsymbol{2\\cos 2x\\sin x}$ (ii) $\\boldsymbol{x=0,\\ \\frac{\\pi}{4},\\ \\frac{3}{4}\\pi,\\ \\pi,\\ \\frac{5}{4}\\pi,\\ \\frac{7}{4}\\pi}$"}]},{"week":12,"title":"中３計算テスト 12 （前期第12回）","topic":"数学基礎講座 II［三角関数 I］","questions":[{"q":"$0\\leqq x<2\\pi$ として，$x$ の方程式 $2\\sin^2 x-3\\cos x=0$ を解け。以下の解答の \\fbox{1}〜\\fbox{3} にあてはまる方程式，数値をそれぞれ答えよ。 $\\sin^2 x+\\cos^2 x=1$ により， \\[ 2\\sin^2 x-3\\cos x=0 \\] を $\\cos x$ だけの二次方程式にして， （ \\fbox{1} ）（☞ 因数分解された形）$\\cdots\\cdots$① ここで，$0\\leqq x<2\\pi$ より，$-1\\leqq\\cos x\\leqq 1$ であるから， ① $\\Leftrightarrow \\cos x=$ （ \\fbox{2} ）（☞ 数値で） $0\\leqq x<2\\pi$ を考慮して， $x=$ （ \\fbox{3} ）（☞ 数値で）$\\cdots\\cdots$答","points":30,"a":"\\fbox{1} $\\mathbf{(\\cos x+2)(2\\cos x-1)=0}$ \\quad \\fbox{2} $\\mathbf{\\frac{1}{2}}$ \\quad \\fbox{3} $\\mathbf{\\frac{\\pi}{3},\\ \\frac{5}{3}\\pi}$"},{"q":"直線 $l$：$y=2x-3$ と $x$ 軸の正方向とのなす角を $\\theta$ とするとき，$\\sin\\theta$ を求めよ。","points":20,"a":"$\\mathbf{\\sin\\theta=\\frac{2}{5}\\sqrt{5}}$"},{"q":"$\\triangle\\mathrm{ABC}$ において，$a:b:c=3:5:7$ であるとき，次のものを求めよ。(i)(ii)については，\\fbox{1}〜\\fbox{4} にあてはまる方程式，数値を求めよ。 \\begin{enumerate} \\item[(i)] $\\sin A:\\sin B:\\sin C$ \\item[(ii)] $\\cos A:\\cos B:\\cos C$ \\item[(iii)] $\\triangle\\mathrm{ABC}$ の最大の頂角（答のみでよい） $a:b:c=3:5:7$ であるから，$k$ を正の定数として， \\[ a=3k,\\ b=5k,\\ c=7k \\qquad \\cdots\\cdots\\text{①} \\] と表せる。 (i) $\\triangle\\mathrm{ABC}$ の外接円の半径を $R$ とすると，正弦定理より，①から， \\[ \\begin{cases} \\sin A=\\text{（ \\fbox{1} ）} & \\text{（☞ $R$，$k$ を用いて）}\\\\ \\sin B=\\text{（ \\fbox{2} ）} & \\text{（☞ $R$，$k$ を用いて）}\\\\ \\sin C=\\text{（ \\fbox{3} ）} & \\text{（☞ $R$，$k$ を用いて）} \\end{cases} \\] よって， $\\sin A:\\sin B:\\sin C=$ （ \\fbox{4} ）（☞ 数値で）$\\cdots\\cdots$答 (ii) 余弦定理より，①から， \\[ \\begin{cases} \\cos A=\\text{（ \\fbox{1} ）} & \\text{（☞ 数値で）}\\\\ \\cos B=\\text{（ \\fbox{2} ）} & \\text{（☞ 数値で）}\\\\ \\cos C=\\text{（ \\fbox{3} ）} & \\text{（☞ 数値で）} \\end{cases} \\] よって， $\\cos A:\\cos B:\\cos C=$ （ \\fbox{4} ）（☞ 数値で）$\\cdots\\cdots$答","points":50,"a":"\\begin{enumerate} \\item[(i)] \\fbox{1} $\\mathbf{\\frac{3k}{2R}}$ \\quad \\fbox{2} $\\mathbf{\\frac{5k}{2R}}$ \\quad \\fbox{3} $\\mathbf{\\frac{7k}{2R}}$ \\quad \\fbox{4} $\\mathbf{3:5:7}$ \\item[(ii)] \\fbox{1} $\\mathbf{\\frac{13}{14}}$ \\quad \\fbox{2} $\\mathbf{\\frac{11}{14}}$ \\quad \\fbox{3} $\\mathbf{-\\frac{1}{2}}$ \\quad \\fbox{4} $\\mathbf{13:11:(-7)}$ \\item[(iii)] $\\mathbf{C}$"}]},{"week":13,"title":"中３計算テスト 13 （前期第13回）","topic":"数学基礎講座 I［関数］","questions":[{"q":"二次関数 $y=f(x)$ のグラフは，軸が $x=2$ で，$x$ 軸に接し，かつ点 $\\mathrm{A}(1, 2)$ を通るという。このとき，$f(x)$ を求めよ。","points":20,"a":"$\\mathbf{f(x)=2(x-2)^2}$（$f(x)=2x^2-8x+8$ でも可）"},{"q":"関数 $y=|2x-2|$ において，定義域が $-2\\leqq x\\leqq 2$ であるとき，値域を求めよ。","points":20,"a":"$\\mathbf{0\\leqq y\\leqq 6}$"},{"q":"$y=\\frac{2x-6}{x-2}$ のグラフは，$y=\\frac{k}{x}$ のグラフを $x$ 軸方向に $a$，$y$ 軸方向に $b$ だけ平行移動したものであるという。このとき，実数定数 $k$，$a$，$b$ の値を求めよ。","points":20,"a":"$\\mathbf{k=-2,\\ a=2,\\ b=2}$"},{"q":"関数 $y=2x+1$ $\\cdots\\cdots$① について，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] この関数の逆関数を求めよ。 \\item[(ii)] 関数①の定義域が $-1<x\\leqq 2$ であるとき，(i)で求めた逆関数の定義域を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=\\frac{1}{2}x-\\frac{1}{2}}$ \\item[(ii)] $\\mathbf{-1<x\\leqq 5}$"}]},{"week":14,"title":"中３計算テスト 14（前期第14回）","topic":"数学基礎講座 I［方程式・不等式］","questions":[{"q":"二次不等式 $2(x+3)-4x>(x-2)^2-5x^2$ を解け。","points":20,"a":"任意の実数（「全実数」でも可）"},{"q":"次の命題の（\\quad）を，＜選択肢＞の①～④の中から最も適切なもので埋めよ。 命題\\quad 『四角形 ABCD において，対角線 AC，BD の長さが等しいことは，四角形 ABCD が長方形であるための（\\quad）。』 ＜選択肢＞ ①必要条件であるが，十分条件でない ②十分条件であるが，必要条件でない ③必要十分条件である ④必要条件でも十分条件でもない","points":20,"a":"①必要条件であるが，十分条件でない"},{"q":"連立方程式 \\[ \\left\\{ \\begin{array}{ll} xy+x+y=3 & \\text{……①} \\\\ x^2+y^2=2 & \\text{……②} \\end{array} \\right. \\] について，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] $x+y=u$，$xy=v$ とおくとき，①②を $u$，$v$ の式に書き直せ。 \\item[(ii)] $u$，$v$ の値を求めよ。 \\item[(iii)] $x$，$y$ の値を求めよ。","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\begin{cases} \\mathbf{u+v=3} \\\\ \\mathbf{u^2-2v=2} \\end{cases}$ \\item[(ii)] $\\mathbf{(u, v)=(2, 1),\\ (-4, 7)}$ \\item[(iii)] $\\mathbf{(x, y)=(1, 1)},\\ \\mathbf{(-2\\pm\\sqrt{3}i,\\ -2\\mp\\sqrt{3}i)}$（複号同順）"}]},{"week":15,"title":"中３計算テスト 15（前期第15回）","topic":"数学基礎講座 I［数と式］","questions":[{"q":"$x^3-(a+1)x^2+(a-2)x+2a$ を因数分解せよ。","points":20,"a":"$\\mathbf{(x+1)(x-2)(x-a)}$"},{"q":"$a<b<c$ のとき，次の式を簡単にせよ。 $\\sqrt{a^2-2ab+b^2}+\\sqrt{b^2-2bc+c^2}+\\sqrt{c^2-2ca+a^2}$","points":20,"a":"$\\mathbf{-2a+2c}$"},{"q":"$x=\\sqrt{28-10\\sqrt{3}}$ について，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $x$ の二重根号を外せ。 \\item[(ii)] $x$ の整数部分を $a$，小数部分を $b$ とする。$a$，$b$ を求めよ。 \\item[(iii)] (ii)の $a$，$b$ に対して，次の式の値を計算せよ。 $\\frac{1}{a+b+1}+\\frac{1}{a-b+5}$","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{5-\\sqrt{3}}$ \\item[(ii)] $\\mathbf{a=3,\\ b=2-\\sqrt{3}}$ \\item[(iii)] $\\mathbf{\\frac{4}{11}}$"}]},{"week":16,"title":"中３計算テスト 16（前期第16回）","topic":"数学基礎講座 II［数列］","questions":[{"q":"次の数列 $\\{a_n\\}$ の一般項 $a_n$ を求めよ。 \\begin{enumerate} \\item[(i)] $-5$，$-2$，$1$，$4$，$7$，$10$，$\\cdots$ \\item[(ii)] $\\frac{1}{4}$，$\\frac{1}{2}$，$1$，$2$，$4$，$8$，$\\cdots$ \\item[(iii)] $1$，$2$，$5$，$10$，$17$，$26$，$\\cdots$ \\item[(iv)] 初項から第 $n$ 項までの和 $S_n$ が $2n^2-5n$","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=3n-8}$ \\item[(ii)] $\\mathbf{a_n=2^{n-3}}$ \\item[(iii)] $\\mathbf{a_n=n^2-2n+2}$ \\item[(iv)] $\\mathbf{a_n=4n-7}$"},{"q":"次の数列の初項から第 $n$ 項までの和 $S_n$ を求めよ。 \\begin{enumerate} \\item[(i)] $5$，$15$，$45$，$135$，$405$，$\\cdots$ \\item[(ii)] $2\\times 3$，$3\\times 5$，$4\\times 7$，$5\\times 9$，$6\\times 11$，$\\cdots$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{S_n=\\frac{5\\cdot(3^n-1)}{2}}$ \\item[(ii)] $\\mathbf{S_n=\\frac{n(4n^2+15n+17)}{6}}$"}]},{"week":17,"title":"中３計算テスト 17（前期第17回）","topic":"数学基礎講座 II［数列］","questions":[{"q":"次の計算を行え。 \\begin{enumerate} \\item[(i)] $\\displaystyle\\sum_{k=1}^{n}(3k^2+k)$ \\item[(ii)] $\\displaystyle\\sum_{k=1}^{n}(3\\cdot 2^{k-1})$ \\item[(iii)] $\\displaystyle\\sum_{k=1}^{n}\\{k(k+1)(2k+1)\\}$ \\item[(iv)] $\\displaystyle\\sum_{k=1}^{n}3^k$","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{n(n+1)^2}$ \\item[(ii)] $\\mathbf{3(2^n-1)}$ \\item[(iii)] $\\mathbf{\\frac{1}{2}n(n+1)^2(n+2)}$ \\item[(iv)] $\\mathbf{\\frac{3^{n+1}-3}{2}}$"},{"q":"次の数列の一般項 $a_n$ を求めよ。 \\begin{enumerate} \\item[(i)] 初項から第 $n$ 項までの和が $S_n=2n^2+7n$ \\item[(ii)] $2$，$3$，$6$，$15$，$42$，$123$，$\\cdots$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=4n+5\\ (n\\geqq 1)}$ \\item[(ii)] $\\mathbf{a_n=\\frac{3^{n-1}+3}{2}\\ (n\\geqq 1)}$"}]},{"week":18,"title":"中３計算テスト 18（前期第18回）","topic":"数学基礎講座 II［三角関数 I］","questions":[{"q":"$0\\leqq x<2\\pi$ のとき，不等式 $\\tan x\\geqq -\\frac{\\sqrt{3}}{3}$ を解け。","points":20,"a":"$\\mathbf{0\\leqq x<\\frac{\\pi}{2},\\ \\frac{5}{6}\\pi\\leqq x<\\frac{3}{2}\\pi,}$ $\\mathbf{\\frac{11}{6}\\pi\\leqq x<2\\pi}$"},{"q":"三辺の長さが $x$，$x+1$，$x+2$ である三角形がある。 \\begin{enumerate} \\item[(i)] このような三角形が存在するための実数 $x$ の条件を求めよ。 \\item[(ii)] この三角形が鈍角三角形であるような実数 $x$ の条件を求めよ。","points":40,"a":"(ii) $\\mathbf{x>1}$ \\qquad (iii) $\\mathbf{1<x<3}$"},{"q":"三辺の長さが $5$，$9$，$10$ である三角形がある。以下の $\\fbox{1}$～$\\fbox{4}$ にあてはまる数，式を答えよ。 \\begin{enumerate} \\item[(i)] この三角形の面積 $S$ を求めよ。 \\item[(ii)] この三角形の内接円の半径 $r$ を求めよ。 $a=\\mathrm{BC}=5$，$b=\\mathrm{CA}=9$，$c=\\mathrm{AB}=10$ となるように三つの頂点 A，B，C を定める。 (i)\\quad 余弦定理より， \\[ \\cos A=(\\fbox{1})\\quad （☞ 数値で）\\text{……①} \\] $A$ は $\\triangle\\mathrm{ABC}$ の内角であるから，$0<A<\\pi$ である。よって，常に $\\sin A>0$ であるから，①より， \\[ \\sin A=(\\fbox{2})\\quad （☞ 数値で） \\] 以上より，求める三角形の面積は， \\[ S=(\\fbox{3})\\quad （☞ b，c，A を用いた式で） \\] \\[ =(\\fbox{4})\\quad （☞ 数値で）\\quad \\text{……}\\fbox{答} \\] (ii)\\quad $\\triangle\\mathrm{ABC}$ の内心を I とおくと， \\[ S=\\triangle\\mathrm{IBC}+\\triangle\\mathrm{ICA}+\\triangle\\mathrm{IAB}=(\\fbox{1})\\quad （☞ r のみの式で） \\] (i) の結果と合わせて， \\[ r=(\\fbox{2})\\quad （☞ 数値で）\\quad \\text{……}\\fbox{答} \\]","points":40,"a":"(i) \\fbox{1} $\\mathbf{\\frac{13}{15}}$ \\quad \\fbox{2} $\\mathbf{\\frac{2\\sqrt{14}}{15}}$ \\quad \\fbox{3} $\\mathbf{\\frac{1}{2}bc\\sin A}$ \\quad \\fbox{4} $\\mathbf{6\\sqrt{14}}$ (ii) \\fbox{1} $\\mathbf{12r}$ \\quad \\fbox{2} $\\mathbf{\\frac{\\sqrt{14}}{2}}$"}]},{"week":19,"title":"中３計算テスト 19（前期第19回）","topic":"数学基礎講座 I［指数・対数］","questions":[{"q":"関数 $y=\\log_2(4x+8)$ のグラフは，関数 $y=\\log_2 x$ のグラフを $x$ 軸方向に $p$，$y$ 軸方向に $q$ だけ平行移動させたものである。$p$，$q$ の値を求めよ。","points":20,"a":"$\\mathbf{p=-2,\\ q=2}$"},{"q":"3数 $A=\\log_{0.5}0.4$，$B=\\log_2 0.4$，$C=\\log_3 0.4$ の大小関係を不等式で表せ。","points":20,"a":"$\\mathbf{B<C<A}$"},{"q":"関数 $y=\\frac{1}{8}\\cdot 4^{x+1}-6\\cdot 2^{x-1}+1$ $(-1\\leqq x\\leqq 2)$ について，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $2^x=t$ とおくとき，$y$ を $t$ で表せ。また $t$ の取り得る値の範囲を求めよ。 \\item[(ii)] $y$ の最大値，最小値を求めよ（それらを与える $x$ の値は求めなくてもよい）。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=\\frac{1}{2}t^2-3t+1,\\ \\frac{1}{2}\\leqq t\\leqq 4}$ \\item[(ii)] 最大値：$\\mathbf{-\\frac{3}{8}}$，最小値：$\\mathbf{-\\frac{7}{2}}$"},{"q":"$15^{18}$ の桁数を求めよ。ただし，$\\log_{10}2=0.3010$，$\\log_{10}3=0.4771$ とする。","points":20,"a":"$\\mathbf{22}$ 桁"}]},{"week":20,"title":"中３計算テスト 20（前期第20回）","topic":"数学基礎講座 II［数列］","questions":[{"q":"次の数列の一般項 $a_n$ と初項から第 $n$ 項までの和 $S_n$ を求めよ。 \\begin{enumerate} \\item[(i)] $3,\\ 7,\\ 11,\\ 15,\\ 19,\\ 23,\\ \\cdots$（解答欄：一般項・和） \\item[(ii)] $-2,\\ 6,\\ -18,\\ 54,\\ -162,\\ 486,\\ \\cdots$（解答欄：一般項・和） \\item[(iii)] $3,\\ 5,\\ 9,\\ 15,\\ 23,\\ 33,\\ 45,\\ \\cdots$（解答欄：一般項・和）","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=4n-1}$ \\qquad $\\mathbf{S_n=2n^2+n}$ \\item[(ii)] $\\mathbf{a_n=-2\\cdot (-3)^{n-1}}$ \\qquad $\\mathbf{S_n=\\frac{(-3)^n-1}{2}}$ \\item[(iii)] $\\mathbf{a_n=n^2-n+3}$\\\\ $\\mathbf{S_n=\\frac{1}{3}n(n^2+8)}$"},{"q":"等差数列をなす三つの数があって和が $30$，積が $840$ であるとき，この三つの数を求めよ。","points":20,"a":"$\\mathbf{6,\\ 10,\\ 14}$"},{"q":"漸化式 $a_{n+1}=-2a_n+3$，$a_1=3$ で表される数列の一般項 $a_n$ を求めよ。","points":20,"a":"$\\mathbf{a_n=-(-2)^n+1}$"}]},{"week":21,"title":"中３計算テスト 21（前期第21回）","topic":"数学基礎講座 II［三角関数 II］","questions":[{"q":"関数 $y=\\sin^2 x+3\\cos x+1$ について，次の問に答えよ。 \\begin{enumerate} \\item[(i)] $\\cos x=t$ とするとき，$y=\\sin^2 x+3\\cos x+1$ を $t$ の式で表せ。 \\item[(ii)] (i)の結果を利用して，$0\\leqq x<2\\pi$ であるときの $y$ の取り得る範囲を求めよ。","points":25,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=-t^2+3t+2}$ \\item[(ii)] $\\mathbf{-2\\leqq y\\leqq 4}$"},{"q":"$0<\\alpha<\\pi$，$\\cos\\alpha=-\\frac{1}{3}$ のとき，次の三角関数の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\sin\\alpha$ \\item[(ii)] $\\sin 2\\alpha$ \\item[(iii)] $\\cos 2\\alpha$","points":45,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\frac{2\\sqrt{2}}{3}}$ \\item[(ii)] $\\mathbf{-\\frac{4\\sqrt{2}}{9}}$ \\item[(iii)] $\\mathbf{-\\frac{7}{9}}$"},{"q":"$y=\\sin x+\\cos x$ について，次の問に答えよ。 \\begin{enumerate} \\item[(i)] $y$ を $r\\sin(x+\\alpha)$ の形で表せ。ただし，$r>0$，$0\\leqq\\alpha<2\\pi$ で表すこと。 \\item[(ii)] (i)の結果を利用して $y=\\frac{\\sqrt{2}}{2}$ となる $x$ を $0\\leqq x<2\\pi$ の範囲で求めよ。","points":30,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\sqrt{2}\\sin\\left(x+\\frac{\\pi}{4}\\right)}$ \\item[(ii)] $\\mathbf{x=\\frac{7}{12}\\pi,\\ \\frac{23}{12}\\pi}$"}]},{"week":22,"title":"中３計算テスト 22（前期第22回）","topic":"数学基礎講座 I［数学 I A総合］","questions":[{"q":"$x$ の二次不等式 $x^2+ax+4<0$ ……① について，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] $a=6$ のとき，①を解け。 \\item[(ii)] ①が解を持たないような実数定数 $a$ の条件を求めよ。","points":32,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-3-\\sqrt{5}<x<-3+\\sqrt{5}}$ \\item[(ii)] $\\mathbf{-4\\leqq a\\leqq 4}$"},{"q":"以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 曲線 $y=|x^2-4|$ のグラフを描け。 \\item[(ii)] 方程式 $|x^2-4|=k$ が相異なる四つの実数解を持つような定数 $k$ の条件を求めよ。 （ヒント：二つのグラフ $y=|x^2-4|$ と $y=k$ の共有点を考えよ。）","points":32,"a":"\\begin{enumerate} \\item[(i)] $y=|x^2-4|$ のグラフは次の通り。 （グラフは解答編PDF参照） \\item[(ii)] $\\mathbf{0<k<4}$"},{"q":"次の $\\triangle\\mathrm{ABC}$ を解け。 \\begin{enumerate} \\item[(i)] $a=\\sqrt{2}$，$c=1+\\sqrt{3}$，$B=45^\\circ$ \\item[(ii)] $a=\\sqrt{2}$，$B=45^\\circ$，$C=105^\\circ$","points":36,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{(b,\\ A,\\ C)=(2,\\ 30^\\circ,\\ 105^\\circ)}$ \\item[(ii)] $\\mathbf{(b,\\ c,\\ A)=(2,\\ 1+\\sqrt{3},\\ 30^\\circ)}$"}]},{"week":23,"title":"中３計算テスト 23（後期第1週）","topic":"数学基礎講座 II［数列］","questions":[{"q":"次の式の値を求めたい。\\fbox{1}～\\fbox{3}にあてはまる数，式を求めよ。 \\[ \\frac{1}{1\\cdot 3}+\\frac{1}{2\\cdot 4}+\\frac{1}{3\\cdot 5}+\\frac{1}{4\\cdot 6}+\\cdots+\\frac{1}{20\\cdot 22} \\] 一般に，$\\frac{1}{n(n+2)}$ について， \\[ \\frac{1}{n(n+2)}=\\fbox{1}\\times\\left(\\frac{1}{n}-\\frac{1}{n+2}\\right) \\] が成立するので， （与式）$=\\fbox{2}$ （分数の和の形で） \\hspace{2.5em}$=\\fbox{3}$ ……答","points":20,"a":"\\fbox{1} $\\mathbf{\\frac{1}{2}}$ \\quad \\fbox{2} $\\mathbf{\\frac{1}{2}\\left(\\frac{1}{1}+\\frac{1}{2}-\\frac{1}{21}-\\frac{1}{22}\\right)}$ \\quad \\fbox{3} $\\mathbf{\\frac{325}{462}}$"},{"q":"次の式の値を求めたい。\\fbox{1}～\\fbox{3}にあてはまる数，式を求めよ。 \\[ 21^2+22^2+23^2+\\cdots+40^2 \\] \\[ \\sum_{k=1}^{n}k^2=\\fbox{1} \\] を用いて， （与式）$=\\fbox{2}$ （$\\sum$ を二つ用いた形で） \\hspace{2.5em}$=\\fbox{3}$ ……答","points":20,"a":"\\fbox{1} $\\mathbf{\\frac{1}{6}n(n+1)(2n+1)}$ \\quad \\fbox{2} $\\mathbf{\\sum_{k=1}^{40}k^2-\\sum_{k=1}^{20}k^2}$ \\quad \\fbox{3} $\\mathbf{19270}$"},{"q":"漸化式 $a_1=2$，$a_{n+1}=a_n+3$ $(n\\geqq 1)$ で表される数列 $\\{a_n\\}$ の一般項 $a_n$ を求めよ。","points":20,"a":"$\\mathbf{a_n=3n-1}$"},{"q":"漸化式 $a_1=-2$，$a_{n+1}=3a_n$ $(n\\geqq 1)$ で表される数列 $\\{a_n\\}$ の一般項 $a_n$ を求めよ。","points":20,"a":"$\\mathbf{a_n=-2\\cdot 3^{n-1}}$"},{"q":"漸化式 $a_1=1$，$a_{n+1}=2a_n+1$ $(n\\geqq 1)$ で表される数列 $\\{a_n\\}$ の一般項 $a_n$ を求めよ。","points":20,"a":"$\\mathbf{a_n=2^n-1}$"}]},{"week":24,"title":"中３計算テスト 24（後期第２週）","topic":"数学基礎講座 II［図形と式］","questions":[{"q":"三点 $A(2, 1)$，$B(-1, 3)$，$C(1, 6)$ を頂点とする $\\triangle ABC$ について，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $\\triangle ABC$ の重心 $G$ の座標を求めよ。 \\item[(ii)] $\\triangle ABC$ の外心 $P$ の座標を求めよ。 \\item[(iii)] $\\triangle ABC$ の面積 $S$ を求めよ。","points":48,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{G\\left(\\frac{2}{3},\\ \\frac{10}{3}\\right)}$ \\item[(ii)] $\\mathbf{P\\left(\\frac{3}{2},\\ \\frac{7}{2}\\right)}$ \\item[(iii)] $\\mathbf{S=\\frac{13}{2}}$"},{"q":"点 $(-3, 1)$ と直線 $2x-3y-4=0$ の距離 $d$ を求めよ。","points":16,"a":"$\\mathbf{d=\\sqrt{13}}$"},{"q":"二点 $(a, -1)$，$(-2, 3)$ を通る直線の方程式を求めよ。","points":18,"a":"$\\mathbf{a=-2}$ のとき，$\\mathbf{x=-2}$ $\\mathbf{a\\neq -2}$ のとき，$\\mathbf{y=-\\frac{4}{a+2}x+\\frac{3a-2}{a+2}}$ （まとめて，$\\mathbf{4x+(a+2)y-3a+2=0}$ でも可）"},{"q":"傾きが $2$ で，円 $(x-2)^2+(y+1)^2=5$ に接する直線の方程式を求めよ。","points":18,"a":"$\\mathbf{y=2x,\\ y=2x-10}$"}]},{"week":25,"title":"中３計算テスト 25（後期第３週）","topic":"数学基礎講座 II［三角関数 II］","questions":[{"q":"関数 $y=\\cos\\left(3x+\\frac{\\pi}{2}\\right)$ のグラフは，関数 $y=\\cos x$ のグラフを，$x$ 軸方向に $a$ 倍に拡大し，続いて $x$ 軸方向に $b$ だけ平行移動したものである。$a$，$b$ の値を求めよ。","points":16,"a":"$\\mathbf{a=\\frac{1}{3},\\ b=-\\frac{\\pi}{6}}$"},{"q":"$\\sin\\alpha=-\\frac{3}{5}$ $\\left(\\pi<\\alpha<\\frac{3}{2}\\pi\\right)$ のとき，次の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\cos\\alpha$ \\item[(ii)] $\\sin 2\\alpha$ \\item[(iii)] $\\sin 3\\alpha$ \\item[(iv)] $\\cos\\frac{\\alpha}{2}$","points":56,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\cos\\alpha=-\\frac{4}{5}}$ \\item[(ii)] $\\mathbf{\\sin 2\\alpha=\\frac{24}{25}}$ \\item[(iii)] $\\mathbf{\\sin 3\\alpha=-\\frac{117}{125}}$ \\item[(iv)] $\\mathbf{\\cos\\frac{\\alpha}{2}=-\\frac{\\sqrt{10}}{10}}$"},{"q":"$0\\leqq x<2\\pi$ の範囲で次の方程式，不等式を解け。 \\begin{enumerate} \\item[(i)] $\\sin 2x=\\sin x$ \\item[(ii)] $\\cos 2x\\geqq\\cos x$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{x=0,\\ \\frac{\\pi}{3},\\ \\pi,\\ \\frac{5}{3}\\pi}$ \\item[(ii)] $\\mathbf{x=0,\\ \\frac{2}{3}\\pi\\leqq x\\leqq\\frac{4}{3}\\pi}$"}]},{"week":26,"title":"中３計算テスト 26（後期第4週）","topic":"数学基礎講座 I［指数・対数］","questions":[{"q":"次の各式を最も平易な式に整理せよ。 \\begin{enumerate} \\item[(i)] $\\log_2\\sqrt{8}-\\log_2\\frac{2}{\\sqrt{3}}-\\frac{3}{2}\\log_2\\sqrt[3]{12}$ \\item[(ii)] $\\log_2 90-\\log_2\\sqrt{750}-\\log_4\\frac{6}{5}$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-\\frac{1}{2}}$ \\item[(ii)] $\\mathbf{\\log_2 3}$"},{"q":"$x=\\log_2 5$，$y=\\log_2 7$ とするとき，次の各数を $x$，$y$ で表せ。 \\begin{enumerate} \\item[(i)] $\\log_{10} 7$ \\item[(ii)] $\\log_{35} 245$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\frac{y}{x+1}}$ \\item[(ii)] $\\mathbf{\\frac{x+2y}{x+y}}$"},{"q":"$\\log_{10} 2=0.3010$ として，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $2^{64}$ は何桁の整数であるか。 \\item[(ii)] $\\left(\\frac{1}{2}\\right)^{100}$ を小数で表すとき，小数第何位に初めて $0$ 以外の数字が現れるか。","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{20}$ 桁 \\item[(ii)] 小数第 $\\mathbf{31}$ 位"},{"q":"不等式 $\\log_2 x+\\log_2 (x-1)\\leqq 1$ を解け。","points":16,"a":"$\\mathbf{1<x\\leqq 2}$"}]},{"week":27,"title":"中３計算テスト 27（後期第５週）","topic":"数学基礎講座 II［数列］","questions":[{"q":"初項から第 $n$ 項までの和 $S_n$ が $S_n=3n^2-6n+1$ で与えられる数列 $\\{a_n\\}$ の第 $n$ 項を求めよ。以下のの $\\fbox{1}$ 〜 $\\fbox{4}$ にあてはまる式，数値を答えよ。 i) $n=1$ のとき $a_1=\\fbox{1}$ （$S_{\\square}$ という形で） $\\phantom{a_1}=\\fbox{2}$ （数値で）……① ii) $n\\geqq 2$ のとき $a_n=\\fbox{3}$ （$S_{\\square}$ という形を用いた式で） $\\phantom{a_n}=\\fbox{4}$ （$n$ を用いた式で）……② ①②より， $a_1=\\fbox{2}$，$a_n=\\fbox{4}$ $(n\\geqq 2)$ ……答","points":20,"a":"\\fbox{1} $\\mathbf{S_1}$ \\quad \\fbox{2} $\\mathbf{-2}$ \\quad \\fbox{3} $\\mathbf{S_n-S_{n-1}}$ \\quad \\fbox{4} $\\mathbf{6n-9}$"},{"q":"等差数列 $\\{a_n\\}$ において $a_2=5$，$a_8=35$ であるとき，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の初項と公差を求めよ。 \\item[(ii)] 数列 $\\{a_n\\}$ の初項から第 $n$ 項までの和 $S_n$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] 初項 $\\mathbf{0}$，公差 $\\mathbf{5}$ \\item[(ii)] $\\mathbf{\\frac{5}{2}n(n-1)}$"},{"q":"数列 $\\{a_n\\}$ が次のように与えられている。以下の設問について，の $\\fbox{1}$ 〜 $\\fbox{2}$ にあてはまる式，数値をそれぞれ答えよ。 $2,\\ 3,\\ 6,\\ 15,\\ 42,\\ 123,\\ 366,\\ \\cdots$ \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の階差数列を $\\{b_n\\}$ とするとき，数列 $\\{b_n\\}$ の一般項を求めよ。 \\item[(ii)] 数列 $\\{a_n\\}$ の第 $n$ 項を求めよ。 (i) 題意より，階差数列 $\\{b_n\\}$ は， $\\fbox{1}$ （初項から第 $6$ 項までを書け） となることより， $b_n=\\fbox{2}$ （$n$ を用いた式で）……答 (ii) (i) の結果より，$n\\geqq 2$ のとき， $a_n=\\fbox{1}$ （$\\sum$ を用いた式で） $\\phantom{a_n}=\\fbox{2}$ （$n$ を用いた式で）……① ここで，①に $n=1$ を代入すると，$a_1=2$ となるので，①は $n=1$ でも成立するから， $a_n=\\fbox{2}$ （$n$ を用いた式で）$(n\\geqq 1)$ ……答","points":40,"a":"\\begin{enumerate} \\item[(i)] \\fbox{1} $\\mathbf{1,\\ 3,\\ 9,\\ 27,\\ 81,\\ 243,\\ \\cdots}$ \\quad \\fbox{2} $\\mathbf{b_n=3^{n-1}}$ \\item[(ii)] \\fbox{1} $\\mathbf{2+\\sum_{k=1}^{n-1}3^{k-1}}$ \\quad \\fbox{2} $\\mathbf{\\frac{3^{n-1}+3}{2}}$"}]},{"week":28,"title":"中３計算テスト 28（後期第６週）","topic":"数学基礎講座 II［数列］","questions":[{"q":"$a_1=-1$，$a_{n+1}=3a_n-2$ $(n\\geqq 1)$ で定められる数列 $\\{a_n\\}$ の第 $n$ 項を求めよ。","points":20,"a":"$\\mathbf{a_n=-2\\cdot 3^{n-1}+1}$"},{"q":"$a_1=1$，$a_2=1+2$，$a_3=1+2+3$，$a_4=1+2+3+4$，$a_5=1+2+3+4+5$，$\\cdots$ である数列 $\\{a_n\\}$ について，以下の各問に答えよ。 \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の第 $n$ 項 $a_n$ を求めよ。 \\item[(ii)] 数列 $\\{a_n\\}$ の初項から第 $n$ 項までの和 $S_n$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=\\frac{1}{2}n(n+1)}$ \\item[(ii)] $\\mathbf{S_n=\\frac{1}{6}n(n+1)(n+2)}$"},{"q":"公比が実数の等比数列 $\\{a_n\\}$ において，$a_2=6$，$a_5=162$ であるとき，以下の各問に答えよ。 \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の第 $n$ 項 $a_n$ を求めよ。 \\item[(ii)] $P_n=a_1\\times a_2\\times a_3\\times\\cdots\\times a_n$ とするとき，$P_n$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=2\\cdot 3^{n-1}}$ \\item[(ii)] $\\mathbf{P_n=2^n\\cdot 3^{\\frac{1}{2}n(n-1)}}$"}]},{"week":29,"title":"中３計算テスト 29（後期第7週）","topic":"数学基礎講座II［微分］","questions":[{"q":"関数 $y=3x^5-5x^3-1$ の極値を求めよ（極値をとるときの $x$ の値も答えること）。","points":20,"a":"極大値：$\\mathbf{1\\ (x=-1)}$，極小値：$\\mathbf{-3\\ (x=1)}$"},{"q":"次の極限値を求めよ。 \\begin{enumerate} \\item[(i)] $\\lim_{x\\to 0}\\frac{1}{x}\\left(\\frac{1}{1+x}-1\\right)$ \\item[(ii)] $\\lim_{x\\to 1}\\frac{\\sqrt{x+3}-2}{x-1}$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-1}$ \\item[(ii)] $\\mathbf{\\frac{1}{4}}$"},{"q":"曲線 $C:y=x^3+2x^2-3x+1$ 上に点 $\\mathrm{A}(1, 1)$ がある。以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 点 A における曲線 $C$ の接線の方程式を求めよ。 \\item[(ii)] 点 A における曲線 $C$ の法線の方程式を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=4x-3}$ \\item[(ii)] $\\mathbf{y=-\\frac{1}{4}x+\\frac{5}{4}}$"}]},{"week":30,"title":"中３計算テスト 30（後期第8週）","topic":"数学基礎講座II［微分］","questions":[{"q":"関数 $y=x^3-2x^2-x$ のグラフについて，以下の各問に答えよ。 \\begin{enumerate} \\item[(i)] 曲線上の点 $(2, -2)$ における接線の方程式，法線の方程式をそれぞれ求めよ。 \\item[(ii)] (i)の接線と元の曲線との接点以外の共有点の座標を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] 接線：$\\mathbf{y=3x-8}$，法線：$\\mathbf{y=-\\frac{1}{3}x-\\frac{4}{3}}$ \\item[(ii)] 接点以外の共有点：$\\mathbf{(-2, -14)}$"},{"q":"三次関数 $f(x)$ を $f(x)=2x^3-3x^2$ とするとき，以下の各問に答えよ。 \\begin{enumerate} \\item[(i)] $y=f(x)$ の増減表を作れ。 \\item[(ii)] 三次方程式 $2x^3-3x^2-a=0$ が相異なる三つの実数解を持つときの定数 $a$ の条件を求めよ。 \\item[(iii)] $x\\geqq 0$ である任意の実数 $x$ に対して，不等式 $2x^3-3x^2\\geqq a$ が成立するような定数 $a$ の条件を求めよ。","points":60,"a":"\\begin{enumerate} \\item[(i)] { （表は解答編PDF参照）} \\item[(ii)] $\\mathbf{-1<a<0}$ \\item[(iii)] $\\mathbf{a\\leqq -1}$"}]},{"week":31,"title":"中３計算テスト 31（後期第9週）","topic":"数学基礎講座II［三角関数II］","questions":[{"q":"$0\\leqq x<2\\pi$ であるとき，次の方程式を解け。 \\begin{enumerate} \\item[(i)] $\\cos^2 x-\\sin^2 x=\\frac{1}{2}$ \\item[(ii)] $\\sin 3x-\\sin x=0$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{x=\\frac{\\pi}{6},\\ \\frac{5\\pi}{6},\\ \\frac{7\\pi}{6},\\ \\frac{11\\pi}{6}}$ \\item[(ii)] $\\mathbf{x=0,\\ \\frac{\\pi}{4},\\ \\frac{3}{4}\\pi,\\ \\pi,\\ \\frac{5}{4}\\pi,\\ \\frac{7}{4}\\pi}$"},{"q":"$0\\leqq x<2\\pi$ であるとき，次の不等式を解け。 \\begin{enumerate} \\item[(i)] $\\cos\\left(2x-\\frac{\\pi}{4}\\right)>0$ \\item[(ii)] $\\sin x-\\cos 2x\\geqq 0$ \\item[(iii)] $-\\sin x+\\sqrt{3}\\cos x>\\sqrt{2}$","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{0\\leqq x<\\frac{3}{8}\\pi}, \\mathbf{\\frac{7}{8}\\pi<x<\\frac{11}{8}\\pi}, \\mathbf{\\frac{15}{8}\\pi<x<2\\pi}$ \\item[(ii)] $\\mathbf{\\frac{\\pi}{6}\\leqq x\\leqq \\frac{5}{6}\\pi,\\ x=\\frac{3}{2}\\pi}$ \\item[(iii)] $\\mathbf{0\\leqq x<\\frac{\\pi}{12},\\ \\frac{19}{12}\\pi<x<2\\pi}$"}]},{"week":32,"title":"中３計算テスト 32（後期第10週）","topic":"数学基礎講座II［数列］","questions":[{"q":"等差数列をなす三つの数があって，それらの和は $27$，積は $693$ である。このとき，この三つの数を求めよ。","points":20,"a":"$\\mathbf{7, 9, 11}$"},{"q":"等比数列 $\\{a_n\\}$ において $a_1=4$，$a_4=32$ であるとき，以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の公比を求めよ。ただし，公比は実数とする。 \\item[(ii)] 数列 $\\{a_n\\}$ の初項から第 $n$ 項までの和 $S_n$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{r=2}$ \\item[(ii)] $\\mathbf{S_n=2^{n+2}-4}$"},{"q":"$a_1=1$，$a_{n+1}-a_n=2n$ によって定められる数列 $\\{a_n\\}$ がある。以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 数列 $\\{a_n\\}$ の第 $n$ 項 $a_n$ を求めよ。 \\item[(ii)] 数列 $\\{a_n\\}$ の初項から第 $n$ 項までの和 $S_n$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=n^2-n+1}$ \\item[(ii)] $\\mathbf{S_n=\\frac{1}{3}n(n^2+2)}$"}]},{"week":33,"title":"中３計算テスト 33（後期第11週）","topic":"数学基礎講座II［積分］","questions":[{"q":"次の定積分の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\int_2^{-1}(x^3+x)\\,dx$ \\item[(ii)] $\\int_{-2}^{2}(x^3-6x^2+x-3)\\,dx$ \\item[(iii)] $\\int_0^{2}\\{x^2-|x-1|\\}\\,dx$","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-\\frac{21}{4}}$ \\item[(ii)] $\\mathbf{-44}$ \\item[(iii)] $\\mathbf{\\frac{5}{3}}$"},{"q":"等式 $f(x)=x^2+x+\\int_0^{2}f(t)\\,dt$ を満たす関数 $f(x)$ を求めよ。","points":20,"a":"$\\mathbf{f(x)=x^2+x-\\frac{14}{3}}$"},{"q":"$y=x$ と $y=x^2$ で囲まれる部分の面積を求めよ。","points":20,"a":"$\\mathbf{\\frac{1}{6}}$"}]},{"week":34,"title":"中３計算テスト 34（後期第12週）","topic":"数学基礎講座II［積分］","questions":[{"q":"$x$ 軸上を動く動点 P は，$x=1$ の点を出発し，$t$ 秒後の速度 $v(t)$ が $v(t)=t^2-4t+3$ で与えられる。次の値を求めよ。 \\begin{enumerate} \\item[(i)] 出発して4秒後の点 P の座標 $x(4)$ \\item[(ii)] 出発して4秒の間に移動した道のり $L$","points":30,"a":"\\begin{enumerate} \\item[(i)] $x(4)=\\mathbf{\\frac{7}{3}}$ \\item[(ii)] $L=\\mathbf{4}$"},{"q":"$f(x)=\\int_1^x t^2(t+1)(t+2)\\,dt$ とするとき，次の値を求めよ。 \\begin{enumerate} \\item[(i)] $f(1)$ \\item[(ii)] $f'(1)$","points":30,"a":"\\begin{enumerate} \\item[(i)] $f(1)=\\mathbf{0}$ \\item[(ii)] $f'(1)=\\mathbf{6}$"},{"q":"次の面積をそれぞれ求めよ。 \\begin{enumerate} \\item[(i)] $y=x^3-2x^2$ と $x$ 軸によって，囲まれる図形の面積 $S_1$。 \\item[(ii)] $y=\\sqrt{x}$ と $y=2$，$y=4$，$y$ 軸で囲まれる図形の面積 $S_2$。","points":40,"a":"\\begin{enumerate} \\item[(i)] $S_1=\\mathbf{\\frac{4}{3}}$ \\item[(ii)] $S_2=\\mathbf{\\frac{56}{3}}$"}]},{"week":35,"title":"中３計算テスト 35（後期第13週）","topic":"数学基礎講座II［三角関数II］","questions":[{"q":"二次方程式 $2x^2-x+3k=0$ の二つの解が $\\sin\\theta$, $\\cos\\theta$ であるという。このとき以下の問に答えよ。 \\begin{enumerate} \\item[(i)] $\\sin\\theta+\\cos\\theta$ の値を求めよ。 \\item[(ii)] 定数 $k$ の値を求めよ。 \\item[(iii)] $\\sin^3\\theta+\\cos^3\\theta$ の値を求めよ。","points":48,"a":"\\begin{enumerate} \\item[(i)] $\\sin\\theta+\\cos\\theta=\\mathbf{\\frac{1}{2}}$ \\item[(ii)] $k=\\mathbf{-\\frac{1}{4}}$ \\item[(iii)] $\\mathbf{\\frac{11}{16}}$"},{"q":"$0\\leqq x<2\\pi$ のとき，次の不等式を解け。 \\begin{enumerate} \\item[(i)] $\\sin 2x<2\\sin x$ \\item[(ii)] $\\cos 2x+\\frac{1}{2}>\\cos^2 x$","points":32,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{0<x<\\pi}$ \\item[(ii)] $\\mathbf{0\\leqq x<\\frac{\\pi}{4}}, \\mathbf{\\frac{3}{4}\\pi<x<\\frac{5}{4}\\pi}, \\mathbf{\\frac{7}{4}\\pi<x<2\\pi}$"},{"q":"関数 $y=a\\sin x+b\\cos x$ は $0\\leqq x<2\\pi$ において，$x=\\frac{\\pi}{6}$ のとき最大値をとり，また，最小値は $-5$ である。このとき，定数 $a$, $b$ の値を求めよ。","points":20,"a":"$a=\\mathbf{\\frac{5}{2}}$，$b=\\mathbf{\\frac{5\\sqrt{3}}{2}}$"}]},{"week":36,"title":"中３計算テスト 36（後期第14週）","topic":"数学基礎講座I［指数・対数］","questions":[{"q":"以下の各問に答えよ。 \\begin{enumerate} \\item[(i)] $(\\log_2 3+\\log_4 9)(\\log_3 4-\\log_9 2)$ を簡単にせよ。 \\item[(ii)] $\\log_2 3=a$, $\\log_2 5=b$ として，$\\log_{15} 750$ を $a$, $b$ を用いて表せ。","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{3}$ \\item[(ii)] $\\mathbf{\\frac{1+a+3b}{a+b}}$"},{"q":"次の各組の数を小さい順に並べよ。 \\begin{enumerate} \\item[(i)] $\\sqrt{8}$, $3^{\\frac{4}{3}}$, $4$, $\\sqrt[5]{64}$ \\item[(ii)] $\\log_{0.2} 0.3$, $\\log_{0.5} 0.3$, $\\log_2 0.3$, $\\log_3 0.3$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\sqrt[5]{64}<\\sqrt{8}<4<3^{\\frac{4}{3}}}$ \\item[(ii)] $\\mathbf{\\log_2 0.3<\\log_3 0.3<} \\mathbf{\\log_{0.2} 0.3<\\log_{0.5} 0.3}$"},{"q":"次の不等式を解け。 \\begin{enumerate} \\item[(i)] $4^x-28\\cdot 2^{x-2}-8<0$ \\item[(ii)] $(\\log_3 x)^2-\\log_3 x-2\\leqq 0$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{x<3}$ \\item[(ii)] $\\mathbf{\\frac{1}{3}\\leqq x\\leqq 9}$"},{"q":"$5^x=2^y=\\sqrt{10^z}$, $xyz\\ne 0$ であるとき，$\\frac{1}{x}+\\frac{1}{y}$ を $z$ を用いて表せ。","points":16,"a":"$\\mathbf{\\frac{2}{z}}$"}]},{"week":37,"title":"中３計算テスト 37（後期第15週）","topic":"数学基礎講座II［数列］","questions":[{"q":"次の和をそれぞれ求めよ。 \\begin{enumerate} \\item[(i)] $\\sum_{k=1}^{n}(3k^2-k)$ \\item[(ii)] $\\sum_{k=1}^{n}4\\cdot 3^{k-1}$","points":28,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{n^2(n+1)}$ \\item[(ii)] $\\mathbf{2\\cdot 3^n-2}$"},{"q":"次のように定義された数列 $\\{a_n\\}$ の一般項を求めよ。 \\begin{enumerate} \\item[(i)] $a_1=1$, $a_{n+1}=a_n+2n-1$ $(n\\geqq 1)$ \\item[(ii)] $a_1=1$, $a_{n+1}=a_n-2^{n-1}$ $(n\\geqq 1)$ \\item[(iii)] $a_1=1$, $a_{n+1}=4a_n+6$ $(n\\geqq 1)$","points":42,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a_n=n^2-2n+2}$ \\item[(ii)] $\\mathbf{a_n=2-2^{n-1}}$ \\item[(iii)] $\\mathbf{a_n=3\\cdot 4^{n-1}-2}$"},{"q":"次の和 $S$ をそれぞれ求めよ。 \\begin{enumerate} \\item[(i)] $S=x+2x^2+3x^3+\\cdots +nx^n$ \\item[(ii)] $S=\\frac{1}{1\\cdot 2}+\\frac{1}{2\\cdot 3}+\\frac{1}{3\\cdot 4}+\\cdots +\\frac{1}{n(n+1)}$","points":30,"a":"\\begin{enumerate} \\item[(i)] $\\left\\{\\begin{aligned} &x\\ne 1\\text{のとき},\\\\ &S=\\mathbf{\\frac{x-(n+1)x^{n+1}+nx^{n+2}}{(1-x)^2}}\\\\ &x=1\\text{のとき},\\\\ &S=\\mathbf{\\frac{n(n+1)}{2}} \\end{aligned}\\right.$ \\item[(ii)] $S=\\mathbf{\\frac{n}{n+1}}$"}]},{"week":38,"title":"中３計算テスト 38（後期第16週）","topic":"数学基礎講座II［微分］","questions":[{"q":"次の等式が成り立つように実数 $a$, $b$ の値を定めよ。 \\begin{enumerate} \\item[(i)] $\\lim_{x\\to 1}\\frac{x^2+ax-3}{x-1}=b$ \\item[(ii)] $\\lim_{x\\to 2}\\frac{ax^2-3x-2}{x^2-x-2}=b$","points":24,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{a=2,\\ b=4}$ \\item[(ii)] $\\mathbf{a=2,\\ b=\\frac{5}{3}}$"},{"q":"次の関数を微分せよ。 \\begin{enumerate} \\item[(i)] $f(x)=(x^2-1)(3x+2)$ \\item[(ii)] $f(x)=(2x-3)^3$ \\item[(iii)] $f(x)=(x^2+3x)^3$","points":36,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{f'(x)=9x^2+4x-3}$ \\item[(ii)] $\\mathbf{f'(x)=6(2x-3)^2}$ （$24x^2-72x+54$ でも可） \\item[(ii)] $\\mathbf{f'(x)=3x^2(2x+3)(x+3)^2}$ （$6x^5+45x^4+108x^3+81x^2$ でも可）"},{"q":"$f(x)=x^3-3x^2$ とする。以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] $y=f(x)$ 上の点 $(-1, -4)$ における接線の方程式を求めよ。 \\item[(ii)] (i)で求めた接線と $y=f(x)$ の交点の座標を求めよ。 \\item[(iii)] 点 P$(0, 1)$ から $y=f(x)$ へ引いた接線の方程式を全て求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=9x+5}$ \\item[(ii)] $\\mathbf{(5,\\ 50)}$ \\item[(iii)] $\\mathbf{y=-3x+1,\\ y=\\frac{15}{4}x+1}$"}]},{"week":39,"title":"中３計算テスト 39（後期第17週）","topic":"数学基礎講座 II［積分］","questions":[{"q":"次の定積分の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\int_{-2}^{2}(x-2)^2\\,dx$ \\item[(ii)] $\\int_{0}^{3}|x-1|\\,dx$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\frac{64}{3}}$ \\item[(ii)] $\\mathbf{\\frac{5}{2}}$"},{"q":"次の曲線，または，直線によって囲まれた部分の面積 $S$ を求めよ。 \\begin{enumerate} \\item[(i)] $y=x^2-x-2$，$x$ 軸 \\item[(ii)] $y=x^2-x+1$，$y=-x^2+2$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{S=\\frac{9}{2}}$ \\item[(ii)] $\\mathbf{S=\\frac{9}{8}}$"},{"q":"$\\int_{a}^{x}f(t)\\,dt=x^2-6x+5$ を満たす関数 $f(x)$，及び $a$ の値を求めよ。","points":20,"a":"$\\mathbf{f(x)=2x-6,\\ a=1,\\ 5}$"}]},{"week":40,"title":"中３計算テスト 40（後期第18週）","topic":"数学基礎講座 II［平面ベクトル］","questions":[{"q":"$\\vec{a}=(-1,2)$ とする。$\\vec{a}$ と同じ向きに平行な単位ベクトルを求めよ。","points":20,"a":"$\\mathbf{\\left(-\\frac{\\sqrt{5}}{5},\\ \\frac{2\\sqrt{5}}{5}\\right)}$"},{"q":"一辺の長さが $2$ である正三角形 ABC において，次の二つのベクトルの内積を求めよ。ただし，点 M は辺 BC の中点である。 \\begin{enumerate} \\item[(i)] $\\vec{AB}\\cdot\\vec{BC}$ \\item[(ii)] $\\vec{BM}\\cdot\\vec{CM}$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-2}$ \\item[(ii)] $\\mathbf{-1}$"},{"q":"$|\\vec{a}|=4$，$|\\vec{b}|=3$，$|\\vec{a}+\\vec{b}|=2$ であるとき，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $\\vec{a}\\cdot\\vec{b}$ の値を求めよ。 \\item[(ii)] $|\\vec{a}-\\vec{b}|$ を求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{-\\frac{21}{2}}$ \\item[(ii)] $\\mathbf{\\sqrt{46}}$"}]},{"week":41,"title":"中３計算テスト 41（後期第19週）","topic":"数学基礎講座 II［平面ベクトル］","questions":[{"q":"三点 A$(1,2)$，B$(3,4)$，C$(6,6)$ を頂点とする三角形の重心の座標を求めよ。","points":20,"a":"$\\mathbf{\\left(\\frac{10}{3},\\ 4\\right)}$"},{"q":"$\\vec{a}=(2,p)$，$\\vec{b}=(p+1,1)$ に対して，次の各条件が成立するような実数 $p$ の値を求めよ。 \\begin{enumerate} \\item[(i)] $\\vec{a}\\parallel\\vec{b}$ \\item[(ii)] $|\\vec{a}-\\vec{b}|=|\\vec{a}+\\vec{b}|$","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{p=1,\\ -2}$ \\item[(ii)] $\\mathbf{p=-\\frac{2}{3}}$"},{"q":"$\\triangle$OAB において，辺 OA の中点を M，辺 OB を $3:1$ に内分する点を N とし，AN，BM の交点を P とする。$\\vec{OA}=\\vec{a}$，$\\vec{OB}=\\vec{b}$ とするとき，次の各問に答えよ。 \\begin{enumerate} \\item[(i)] AP：NP $=t:(1-t)$ として，$\\vec{OP}$ を $\\vec{a}$，$\\vec{b}$ で表せ。 \\item[(ii)] $t$ を用いずに，$\\vec{OP}$ を $\\vec{a}$，$\\vec{b}$ だけで表せ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\vec{OP}=(1-t)\\vec{a}+\\frac{3}{4}t\\vec{b}}$ \\item[(ii)] $\\mathbf{\\vec{OP}=\\frac{1}{5}\\vec{a}+\\frac{3}{5}\\vec{b}}$"}]},{"week":42,"title":"中３計算テスト 42（後期第20週）","topic":"数学基礎講座 II［積分］","questions":[{"q":"次の関数 $F(x)$ の極大値，及び極小値をとる $x$ の値をそれぞれ求めよ（$x$ の値のみでよい）。 \\[ F(x)=\\int_{x}^{2}(t^2-2t)\\,dt \\]","points":20,"a":"極大値：$\\mathbf{x=2}$ のとき，極小値：$\\mathbf{x=0}$ のとき"},{"q":"次の等式を満たす整関数 $f(x)$，及び定数 $a$ の値を求めよ。 \\[ \\int_{1}^{x}tf(t)\\,dt=-x^3+ax^2+a \\]","points":20,"a":"$\\mathbf{f(x)=-3x+1,\\ a=\\frac{1}{2}}$"},{"q":"曲線 $y=x^3-6x^2+7x-5$ がある。以下の設問に答えよ。 \\begin{enumerate} \\item[(i)] 曲線 $y=x^3-6x^2+7x-5$ 上の点 $(1,-3)$ における接線の方程式を求めよ。 \\item[(ii)] (i)で求めた接線と曲線 $y=x^3-6x^2+7x-5$ の交点の座標を求めよ。 \\item[(iii)] (i)で求めた接線と曲線 $y=x^3-6x^2+7x-5$ で囲まれた図形の面積 $S$ を求めよ。","points":60,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{y=-2x-1}$ \\item[(ii)] $\\mathbf{(4,\\ -9)}$ \\item[(iii)] $\\mathbf{S=\\frac{27}{4}}$"}]},{"week":43,"title":"中３計算テスト 43（後期第21週）","topic":"数学基礎講座 I・II［総合］","questions":[{"q":"$x$ についての不等式 $x+2\\geqq\\frac{3}{x}$ を解け。","points":20,"a":"$\\mathbf{-3\\leqq x<0,\\ 1\\leqq x}$"},{"q":"次の各問に答えよ。 \\begin{enumerate} \\item[(i)] $\\vec{a}=(-2,1,2)$，$\\vec{b}=(4,1,-1)$ のなす角 $\\theta$ を求めよ。 \\item[(ii)] $\\vec{a}=(1,0,1)$，$\\vec{b}=(2,2,1)$ の両方に垂直な単位ベクトルを求めよ。","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\theta=\\frac{3}{4}\\pi}$ \\item[(ii)] $\\mathbf{\\left(\\frac{2}{3}, -\\frac{1}{3}, -\\frac{2}{3}\\right), \\left(-\\frac{2}{3}, \\frac{1}{3}, \\frac{2}{3}\\right)}$"},{"q":"箱の中に $1$ から $10$ までの数字が書かれた計 $10$ 枚のカードがある。この中から $3$ 枚を一度に取り出すとき，次の確率を求めよ。 \\begin{enumerate} \\item[(i)] 最大の数が $7$ 以下で，最小の数が $3$ 以上である確率 \\item[(ii)] 最大の数が $8$ 以上で，最小の数が $2$ 以下である確率","points":40,"a":"\\begin{enumerate} \\item[(i)] $\\mathbf{\\frac{1}{12}}$ \\item[(ii)] $\\mathbf{\\frac{13}{40}}$"}]}]};
+
+      /* ================= 保存（localStorage） ================= */
+      var LS_KEY = "keisanPractice.v1";
+      var store = { marks: {}, scores: {} };
+      try {
+        var raw = localStorage.getItem(LS_KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            store.marks = parsed.marks || {};
+            store.scores = parsed.scores || {};
+          }
+        }
+      } catch (e) { /* 読み込み失敗時は空で開始 */ }
+      function save() {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch (e) { /* 保存不可環境では無視 */ }
+      }
+      function qid(wi, qi) { return DATA.weeks[wi].week + "-" + (qi + 1); }
+
+      /* ================= TeX → HTML ================= */
+      function escapeHtml(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+      function katexHtml(tex, display) {
+        if (window.katex) {
+          try {
+            return window.katex.renderToString(tex, {
+              displayMode: !!display, throwOnError: false, strict: false, trust: false
+            });
+          } catch (e) { /* fall through */ }
+        }
+        return '<span class="texraw">' + escapeHtml((display ? "\\[" : "$") + tex + (display ? "\\]" : "$")) + "</span>";
+      }
+      function renderTextSegment(seg) {
+        var boxes = [];
+        var s = seg.replace(/\\fbox\{([^{}]*)\}/g, function (m, inner) {
+          boxes.push('<span class="fbox">' + escapeHtml(inner) + "</span>");
+          return "\u0002" + (boxes.length - 1) + "\u0003";
+        });
+        s = escapeHtml(s);
+        s = s.replace(/\\\\/g, "<br />");
+        s = s.replace(/\\qquad/g, "　　").replace(/\\quad/g, "　").replace(/\\,/g, " ");
+        s = s.replace(/\\ /g, " ");
+        s = s.replace(/\u0002(\d+)\u0003/g, function (m, n) { return boxes[+n]; });
+        return s;
+      }
+      function renderInline(str) {
+        var out = "", buf = "", i = 0;
+        function flush() { if (buf) { out += renderTextSegment(buf); buf = ""; } }
+        while (i < str.length) {
+          if (str.substr(i, 2) === "\\[") {
+            var endD = str.indexOf("\\]", i + 2);
+            if (endD < 0) { buf += str[i]; i++; continue; }
+            flush();
+            out += katexHtml(str.slice(i + 2, endD), true);
+            i = endD + 2;
+          } else if (str[i] === "$") {
+            var endI = str.indexOf("$", i + 1);
+            if (endI < 0) { buf += str[i]; i++; continue; }
+            flush();
+            out += katexHtml(str.slice(i + 1, endI), false);
+            i = endI + 1;
+          } else { buf += str[i]; i++; }
+        }
+        flush();
+        return out;
+      }
+      var ROMAN = ["(i)", "(ii)", "(iii)", "(iv)", "(v)", "(vi)"];
+      function texToHtml(str) {
+        if (!str) return "";
+        var s = String(str).replace(/\\begin\{enumerate\}/g, "").replace(/\\end\{enumerate\}/g, "");
+        var re = /\\item\[([^\]]*)\]|\\item(?![a-zA-Z])/g;
+        var parts = [], last = 0, m, intro = s, items = [];
+        var matches = [];
+        while ((m = re.exec(s)) !== null) matches.push(m);
+        if (matches.length) {
+          intro = s.slice(0, matches[0].index);
+          for (var k = 0; k < matches.length; k++) {
+            var from = matches[k].index + matches[k][0].length;
+            var to = (k + 1 < matches.length) ? matches[k + 1].index : s.length;
+            items.push({ label: matches[k][1] || ROMAN[k] || "(" + (k + 1) + ")", body: s.slice(from, to) });
+          }
+        }
+        var html = "";
+        if (intro.trim()) html += "<div>" + renderInline(intro.trim()) + "</div>";
+        if (items.length) {
+          html += '<div class="sublist">' + items.map(function (it) {
+            return '<div class="subitem"><span class="sublabel">' + escapeHtml(it.label) + '</span><div class="subbody">' + renderInline(it.body.trim()) + "</div></div>";
+          }).join("") + "</div>";
+        }
+        return html || "<div>" + renderInline(s) + "</div>";
+      }
+
+      /* ================= 画面切り替え ================= */
+      var views = ["home", "quiz", "result", "empty"];
+      function show(name) {
+        views.forEach(function (v) {
+          document.getElementById("view-" + v).classList.toggle("hidden", v !== name);
+        });
+        window.scrollTo(0, 0);
+      }
+
+      /* ================= ホーム ================= */
+      function weekStats(wi) {
+        var w = DATA.weeks[wi], done = 0, ok = 0, weak = 0;
+        w.questions.forEach(function (q, qi) {
+          var mk = store.marks[qid(wi, qi)];
+          if (mk) { done++; if (mk === "o") ok++; else weak++; }
+        });
+        return { done: done, ok: ok, weak: weak, total: w.questions.length };
+      }
+      function renderHome() {
+        var doneAll = 0, okAll = 0, weakAll = 0;
+        DATA.weeks.forEach(function (w, wi) {
+          var st = weekStats(wi);
+          doneAll += st.done; okAll += st.ok; weakAll += st.weak;
+        });
+        document.getElementById("st-done").textContent = doneAll;
+        document.getElementById("st-bar").style.width = (doneAll / 143 * 100) + "%";
+        document.getElementById("st-rate").textContent = doneAll ? Math.round(okAll / doneAll * 100) + "%" : "―";
+        document.getElementById("st-weak").textContent = weakAll;
+        var badge = document.getElementById("weak-badge");
+        badge.textContent = weakAll + "問";
+        badge.classList.toggle("hidden", weakAll === 0);
+        document.getElementById("btn-weak").disabled = false;
+
+        var grid = document.getElementById("week-grid");
+        grid.innerHTML = "";
+        DATA.weeks.forEach(function (w, wi) {
+          var st = weekStats(wi);
+          var sc = store.scores[w.week];
+          var chip;
+          if (sc) {
+            chip = '<span class="score-chip' + (sc.score >= 100 ? " perfect" : "") + '">' + sc.score + "点</span>";
+          } else {
+            chip = '<span class="score-chip none">未挑戦</span>';
+          }
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "week-card";
+          btn.innerHTML =
+            '<span class="wk-top"><span class="wk-num"><small>第</small>' + w.week + '<small>週</small></span>' + chip + "</span>" +
+            '<span class="wk-topic" style="display:block">' + escapeHtml(w.topic) + "</span>" +
+            '<span class="wk-title">' + escapeHtml(w.title) + "</span>" +
+            '<span class="wk-bar" style="display:block"><i style="width:' + (st.done / st.total * 100) + '%"></i></span>' +
+            '<span class="wk-meta"><span>' + st.done + " / " + st.total + " 問 完了</span>" +
+            (st.weak ? '<span class="wk-weak">× ' + st.weak + "問</span>" : "<span></span>") + "</span>";
+          btn.addEventListener("click", function () { startWeek(wi); });
+          grid.appendChild(btn);
+        });
+      }
+
+      /* ================= クイズ ================= */
+      var quiz = null; // {mode, title, queue:[{wi,qi}], idx, results:[{wi,qi,mark}]}
+      function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+      }
+      function startWeek(wi) {
+        var w = DATA.weeks[wi];
+        var queue = w.questions.map(function (q, qi) { return { wi: wi, qi: qi }; });
+        quiz = { mode: "week", week: w.week, title: "第" + w.week + "週テスト", queue: queue, idx: 0, results: [] };
+        showQuestion();
+      }
+      function startDrill() {
+        var all = [];
+        DATA.weeks.forEach(function (w, wi) {
+          w.questions.forEach(function (q, qi) { all.push({ wi: wi, qi: qi }); });
+        });
+        shuffle(all);
+        quiz = { mode: "drill", title: "ランダムドリル", queue: all.slice(0, 10), idx: 0, results: [] };
+        showQuestion();
+      }
+      function startWeak() {
+        var list = [];
+        DATA.weeks.forEach(function (w, wi) {
+          w.questions.forEach(function (q, qi) {
+            if (store.marks[qid(wi, qi)] === "x") list.push({ wi: wi, qi: qi });
+          });
+        });
+        if (!list.length) { show("empty"); return; }
+        shuffle(list);
+        quiz = { mode: "weak", title: "苦手だけ復習", queue: list, idx: 0, results: [] };
+        showQuestion();
+      }
+      function showQuestion() {
+        var item = quiz.queue[quiz.idx];
+        var w = DATA.weeks[item.wi], q = w.questions[item.qi];
+        document.getElementById("qp-title").textContent = quiz.title;
+        document.getElementById("qp-now").textContent = quiz.idx + 1;
+        document.getElementById("qp-total").textContent = quiz.queue.length;
+        document.getElementById("qp-bar").style.width = (quiz.idx / quiz.queue.length * 100) + "%";
+        document.getElementById("q-where").textContent = "第" + w.week + "週 ・ " + w.topic + " ・ 第" + (item.qi + 1) + "問";
+        document.getElementById("q-points").textContent = q.points + "点";
+        var prev = document.getElementById("q-prev");
+        var pm = store.marks[qid(item.wi, item.qi)];
+        if (pm) {
+          prev.textContent = pm === "o" ? "前回：○" : "前回：×";
+          prev.classList.remove("hidden");
+        } else prev.classList.add("hidden");
+        document.getElementById("q-body").innerHTML = texToHtml(q.q);
+        document.getElementById("a-body").innerHTML = texToHtml(q.a);
+        document.getElementById("answer-area").classList.add("hidden");
+        document.getElementById("btn-reveal").classList.remove("hidden");
+        document.getElementById("marked-note").innerHTML = "";
+        show("quiz");
+      }
+      function mark(kind) {
+        var item = quiz.queue[quiz.idx];
+        store.marks[qid(item.wi, item.qi)] = kind;
+        save();
+        quiz.results.push({ wi: item.wi, qi: item.qi, mark: kind });
+        var note = document.getElementById("marked-note");
+        note.innerHTML = kind === "o" ? '<b class="ok">○ 正解</b> として記録しました' : '<b class="ng">× 不正解</b> として記録しました（苦手リストに入ります）';
+        document.getElementById("qp-bar").style.width = ((quiz.idx + 1) / quiz.queue.length * 100) + "%";
+        setTimeout(function () {
+          quiz.idx++;
+          if (quiz.idx < quiz.queue.length) showQuestion();
+          else finishQuiz();
+        }, 550);
+      }
+      function finishQuiz() {
+        var gained = 0, totalPts = 0, okCount = 0;
+        quiz.results.forEach(function (r) {
+          var p = DATA.weeks[r.wi].questions[r.qi].points;
+          totalPts += p;
+          if (r.mark === "o") { gained += p; okCount++; }
+        });
+        if (quiz.mode === "week") {
+          store.scores[quiz.week] = { score: gained, date: new Date().toISOString().slice(0, 10) };
+          save();
+        }
+        document.getElementById("r-label").textContent = quiz.title + " の結果";
+        var scoreHtml;
+        if (quiz.mode === "week") {
+          scoreHtml = '<span class="' + (gained >= 100 ? "perfect" : "") + '">' + gained + '</span><small> / 100点</small>';
+        } else {
+          scoreHtml = gained + '<small> / ' + totalPts + "点</small>";
+        }
+        document.getElementById("r-score").innerHTML = scoreHtml;
+        document.getElementById("r-sub").textContent =
+          quiz.results.length + "問中 " + okCount + "問 正解" +
+          (quiz.mode === "week" ? " ・ この得点が週カードに記録されました" : "");
+        var rev = document.getElementById("r-review");
+        rev.innerHTML = "";
+        quiz.results.forEach(function (r) {
+          var w = DATA.weeks[r.wi], q = w.questions[r.qi];
+          var div = document.createElement("div");
+          div.className = "review-item";
+          div.innerHTML =
+            '<span class="review-mark ' + (r.mark === "o" ? "ok" : "ng") + '">' + (r.mark === "o" ? "○" : "×") + "</span>" +
+            '<div class="review-q"><span class="q-tag">第' + w.week + "週 第" + (r.qi + 1) + "問（" + q.points + '点）</span><br />' + texToHtml(q.q) + "</div>" +
+            '<div class="review-a">' + texToHtml(q.a) + "</div>";
+          rev.appendChild(div);
+        });
+        show("result");
+      }
+
+      /* ================= イベント ================= */
+      document.getElementById("btn-drill").addEventListener("click", startDrill);
+      document.getElementById("btn-weak").addEventListener("click", startWeak);
+      document.getElementById("btn-reveal").addEventListener("click", function () {
+        document.getElementById("answer-area").classList.remove("hidden");
+        document.getElementById("btn-reveal").classList.add("hidden");
+      });
+      document.getElementById("btn-ok").addEventListener("click", function () { mark("o"); });
+      document.getElementById("btn-ng").addEventListener("click", function () { mark("x"); });
+      document.getElementById("btn-quit").addEventListener("click", function () { quiz = null; renderHome(); show("home"); });
+      document.getElementById("btn-home").addEventListener("click", function () { renderHome(); show("home"); });
+      document.getElementById("btn-empty-home").addEventListener("click", function () { renderHome(); show("home"); });
+      document.getElementById("btn-again").addEventListener("click", function () {
+        if (!quiz) { renderHome(); show("home"); return; }
+        if (quiz.mode === "week") {
+          var wi = DATA.weeks.findIndex(function (w) { return w.week === quiz.week; });
+          startWeek(wi);
+        } else if (quiz.mode === "drill") startDrill();
+        else startWeak();
+      });
+      var resetArmed = false, resetTimer = null;
+      document.getElementById("btn-reset").addEventListener("click", function () {
+        var btn = this;
+        if (!resetArmed) {
+          resetArmed = true;
+          btn.textContent = "本当にすべての記録を消しますか？（もう一度押すと実行）";
+          btn.classList.add("confirm");
+          resetTimer = setTimeout(function () {
+            resetArmed = false;
+            btn.textContent = "記録をすべてリセット";
+            btn.classList.remove("confirm");
+          }, 4000);
+          return;
+        }
+        clearTimeout(resetTimer);
+        resetArmed = false;
+        store = { marks: {}, scores: {} };
+        save();
+        btn.textContent = "記録をすべてリセット";
+        btn.classList.remove("confirm");
+        renderHome();
+      });
+
+      renderHome();
+      show("home");
+    </script>
+  </body>
+</html>
